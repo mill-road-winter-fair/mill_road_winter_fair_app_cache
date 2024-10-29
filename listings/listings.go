@@ -8,6 +8,23 @@ import (
 	"github.com/golang/glog"
 )
 
+// Define function to get all listings from db
+func GetListingsFromDb(db *sql.DB) (dbStatus int, details string, rows *sql.Rows, err error) {
+
+	query := "SELECT * FROM listings"
+	rows, err = db.Query(query)
+	
+	// ...or if some other error occurred
+	if err != nil {
+		glog.Errorf("Error retrieving listing from database: %v", err)
+		return http.StatusInternalServerError, "Database error", rows, err
+	}
+
+	// Successfully retrieved the listing
+	glog.Infof("Listings successfully retrieved from database: %v", rows)
+	return http.StatusOK, fmt.Sprintf("Listings successfully retrieved from database with ID: %v", rows), rows, nil
+}
+
 // Define function to add new listing to db
 func CreateListingInDb(db *sql.DB, name, displayname, primarytype, secondarytype, tertiarytype, email, website, phone, pluscode, starttime, endtime string) (dbStatus int, details string, err error) {
 	var listingId int
@@ -15,11 +32,13 @@ func CreateListingInDb(db *sql.DB, name, displayname, primarytype, secondarytype
 	query := "INSERT INTO listings (name, displayname, primarytype, secondarytype, tertiarytype, email, website, phone, pluscode, starttime, endtime) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING id"
 	err = db.QueryRow(query, name, displayname, primarytype, secondarytype, tertiarytype, email, website, phone, pluscode, starttime, endtime).Scan(&listingId)
 
+	// Check if no rows were returned...
 	if err == sql.ErrNoRows {
 		glog.Errorf("Error inserting listing to database: %v", err)
 		return http.StatusInternalServerError, "Error inserting listing to database", err
 	}
 
+	// ...or if some other error occurred
 	if err != nil {
 		glog.Errorf("Database error: %v", err)
 		return http.StatusInternalServerError, "Database error", err
@@ -40,12 +59,13 @@ func GetListingFromDb(db *sql.DB, listingId int) (dbStatus int, details, name, d
 		return http.StatusBadRequest, "Invalid ID", "", "", "", "", "", "", "", "", "", "", "", err
 	}
 
-	// Check if no rows were returned or some other error occurred
+	// Check if no rows were returned...
 	if err == sql.ErrNoRows {
 		glog.Errorf("No listing found with ID: %d", listingId)
 		return http.StatusBadRequest, fmt.Sprintf("No listing found with ID: %d", listingId), "", "", "", "", "", "", "", "", "", "", "", err
 	}
 
+	// ...or if some other error occurred
 	if err != nil {
 		glog.Errorf("Error retrieving listing from database: %v", err)
 		return http.StatusInternalServerError, "Database error", "", "", "", "", "", "", "", "", "", "", "", err
@@ -66,12 +86,13 @@ func UpdateListingInDb(db *sql.DB, listingId int, name, displayname, primarytype
 		return http.StatusBadRequest, "Invalid ID", err
 	}
 
-	// Check if no rows were returned or some other error occurred
+	// Check if no rows were returned...
 	if err == sql.ErrNoRows {
 		glog.Errorf("No listing found with ID: %d", listingId)
 		return http.StatusBadRequest, fmt.Sprintf("No listing found with ID: %v", listingId), err
 	}
 
+	// ...or if some other error occurred
 	if err != nil {
 		glog.Errorf("Error retrieving listing from database: %v", err)
 		return http.StatusInternalServerError, "Error retrieving listing from database", err
@@ -90,11 +111,13 @@ func UpdateListingInDb(db *sql.DB, listingId int, name, displayname, primarytype
 	query = "SELECT name, displayname, primarytype, secondarytype, tertiarytype, email, website, phone, pluscode, starttime, endtime FROM listings WHERE id = $1"
 	err = db.QueryRow(query, listingId).Scan(&name, &displayname, &primarytype, &secondarytype, &tertiarytype, &email, &website, &phone, &pluscode, &starttime, &endtime)
 
+	// Check if no rows were returned...
 	if err == sql.ErrNoRows {
 		glog.Errorf("Error updating listing in database: %v", err)
 		return http.StatusInternalServerError, "Error updating listing in database", err
 	}
 
+	// ...or if some other error occurred
 	if err != nil {
 		glog.Errorf("Database error after listing update: %v", err)
 		return http.StatusInternalServerError, "Database error after listing update", err
@@ -114,12 +137,13 @@ func DeleteListingFromDb(db *sql.DB, listingId int) (dbStatus int, details strin
 		return http.StatusBadRequest, "Invalid ID", err
 	}
 
-	// Check if no rows were returned or some other error occurred
+	// Check if no rows were returned...
 	if err == sql.ErrNoRows {
 		glog.Errorf("No listing found with ID: %d", listingId)
 		return http.StatusBadRequest, fmt.Sprintf("No listing found with ID: %v", listingId), err
 	}
 
+	// ...or if some other error occurred
 	if err != nil {
 		glog.Errorf("Error retrieving listing from database: %v", err)
 		return http.StatusInternalServerError, "Error retrieving listing from database", err

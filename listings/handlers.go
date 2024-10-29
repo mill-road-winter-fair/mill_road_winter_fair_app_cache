@@ -9,6 +9,38 @@ import (
 	"github.com/golang/glog"
 )
 
+func GetListings(c *gin.Context) {
+
+	//Call the DB function
+	glog.Info("Calling GetListingsFromDb function")
+	dbStatus, details, rows, err := GetListingsFromDb(shared.Database)
+
+	if err != nil {
+		//Return the status code and body from the function
+		c.JSON(dbStatus, gin.H{"status": details, "error": err.Error()})
+		return
+	}
+	
+	//Ensure rows are closed after processing
+	defer rows.Close()
+
+	var rowsJson []shared.ListingData
+	for rows.Next() {
+		var row shared.ListingData
+		//Map database row values to the struct fields
+		if err := rows.Scan(&row.Id, &row.Name, &row.DisplayName, &row.PrimaryType, &row.SecondaryType, &row.TertiaryType, &row.Email, &row.Website, &row.Phone, &row.PlusCode, &row.StartTime, &row.EndTime); err != nil {
+			glog.Fatalf("Scanning rows failed: %v", err)
+			c.JSON(500, gin.H{"status": "error", "error": "Failed to scan row data"})
+			return
+		}
+		rowsJson = append(rowsJson, row)
+	}
+
+	//Return successful response with the processed JSON data
+	c.JSON(dbStatus, gin.H{"listings": rowsJson})
+	return
+}
+
 func CreateListing(c *gin.Context) {
 	//Define variable for user's input
 	var userInput shared.ListingData

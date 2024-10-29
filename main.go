@@ -50,10 +50,12 @@ func main() {
 	webServer := gin.Default()
 
 	//API endpoints to handle shop CRUD operations
-	webServer.PUT("/listings", listings.CreateListing)
-	webServer.GET("/listings", listings.GetListing)
-	webServer.POST("/listings", listings.UpdateListing)
-	webServer.DELETE("/listings", listings.DeleteListing)
+	webServer.GET("/listings", listings.GetListings)
+	
+	webServer.PUT("/listing", listings.CreateListing)
+	webServer.GET("/listing", listings.GetListing)
+	webServer.POST("/listing", listings.UpdateListing)
+	webServer.DELETE("/listing", listings.DeleteListing)
 
 	//Define the port
 	port := os.Getenv("PORT")
