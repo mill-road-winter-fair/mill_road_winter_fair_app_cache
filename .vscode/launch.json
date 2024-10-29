@@ -1,0 +1,43 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Run MRWF API",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}",
+            "env": {
+                "PORT": "8080"
+            },
+            "args": [
+                "-logtostderr=true",
+                "-stderrthreshold=INFO"
+              ]
+        },
+        {
+            "name": "Add Test Data To Local DB",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}/helperScripts",
+            "args": [
+                "-add-data",
+                "-logtostderr=true",
+                "-stderrthreshold=INFO"
+              ]
+        },
+        {
+            "name": "Wipe Local DB",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}/helperScripts",
+            "args": [
+                "-wipe",
+                "-logtostderr=true",
+                "-stderrthreshold=INFO"
+              ]
+        }
+    ]
+}
