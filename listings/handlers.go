@@ -37,7 +37,7 @@ func GetListings(c *gin.Context) {
 	}
 
 	//Return successful response with the processed JSON data
-	c.JSON(dbStatus, gin.H{"listings": rowsJson})
+	c.JSON(dbStatus, rowsJson)
 	return
 }
 
