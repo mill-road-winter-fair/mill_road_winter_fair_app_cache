@@ -60,6 +60,9 @@ func addTestingDataToLocalDb(db *sql.DB) (details string, err error) {
 		{Name: "rollingstones", DisplayName: "The Rolling Stones", PrimaryType: "Performer", SecondaryType: "Musician", TertiaryType: "Rock", Email: "admin@rollingstones.com", Website: "https://rollingstones.com/", Phone: "01223 444444", PlusCode: "9F4254XW+23", StartTime: "09:30", EndTime: "10:30"},
 		{Name: "dukeellington", DisplayName: "Duke Ellington", PrimaryType: "Performer", SecondaryType: "Musician", TertiaryType: "Jazz", Email: "duke@ellington.com", Website: "https://en.wikipedia.org/wiki/Duke_Ellington", Phone: "01223 555555", PlusCode: "9F4254XW+23", StartTime: "10:30", EndTime: "11:30"},
 		{Name: "muddywaters", DisplayName: "Muddy Waters", PrimaryType: "Performer", SecondaryType: "Musician", TertiaryType: "Blues", Email: "muddy@waters.com", Website: "https://en.wikipedia.org/wiki/Muddy_Waters", Phone: "01223 666666", PlusCode: "9F4254XW+23", StartTime: "11:30", EndTime: "12:30"},
+		{Name: "knittingcircle", DisplayName: "Knitting Circle", PrimaryType: "Event", SecondaryType: "Craft", TertiaryType: "Knitting", Email: "", Website: "https://www.theknittingnetwork.co.uk/", Phone: "01223 777777", PlusCode: "9F4254XQ+R6", StartTime: "09:30", EndTime: "10:30"},
+		{Name: "standupcomedy", DisplayName: "Stand Up Comedy", PrimaryType: "Event", SecondaryType: "Performance", TertiaryType: "Comedy", Email: "", Website: "", Phone: "01223 888888", PlusCode: "9F4254XR+CQ", StartTime: "13:30", EndTime: "15:30"},
+		{Name: "publictoilets", DisplayName: "Public Toilets", PrimaryType: "Service", SecondaryType: "Toilets", TertiaryType: "Accessible", Email: "public@toilets.com", Website: "", Phone: "01223 999999", PlusCode: "9F4254XQ+RCX", StartTime: "09:00", EndTime: "17:00"},
 	}
 
 	//Iterate through the testShops slice and insert each shop into the DB
