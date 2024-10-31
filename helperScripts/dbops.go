@@ -54,12 +54,12 @@ func addTestingDataToLocalDb(db *sql.DB) (details string, err error) {
 
 	//Hardcoded slice of ShopData structs
 	testListings := []shared.ListingData{
-		{Name: "glazedandconfused", DisplayName: "Glazed and Confused", PrimaryType: "Vendor", SecondaryType: "Food", TertiaryType: "Doughnuts", Email: "admin@glazedandconfued.com", Website: "https://www.glazedandconfused.com", Phone: "01223 111111", PlusCode: "54XQ+VG", StartTime: "09:00", EndTime: "15:00"},
-		{Name: "sushisquad", DisplayName: "Sushi Squad", PrimaryType: "Vendor", SecondaryType: "Food", TertiaryType: "Sushi", Email: "admin@sushisquad.com", Website: "https://www.sushisquad.com", Phone: "01223 222222", PlusCode: "54XQ+XMG", StartTime: "09:00", EndTime: "15:00"},
-		{Name: "familyjewels", DisplayName: "Family Jewels", PrimaryType: "Vendor", SecondaryType: "Retail", TertiaryType: "Jewellery", Email: "admin@familyjewels.com", Website: "https://www.familyjewels.com", Phone: "01223 333333", PlusCode: "642M+J8", StartTime: "09:00", EndTime: "16:00"},
-		{Name: "rollingstones", DisplayName: "The Rolling Stones", PrimaryType: "Performer", SecondaryType: "Musician", TertiaryType: "Rock", Email: "admin@rollingstones.com", Website: "https://rollingstones.com/", Phone: "01223 444444", PlusCode: "54XW+23", StartTime: "09:30", EndTime: "10:30"},
-		{Name: "dukeellington", DisplayName: "Duke Ellington", PrimaryType: "Performer", SecondaryType: "Musician", TertiaryType: "Jazz", Email: "duke@ellington.com", Website: "https://en.wikipedia.org/wiki/Duke_Ellington", Phone: "01223 555555", PlusCode: "54XW+23", StartTime: "10:30", EndTime: "11:30"},
-		{Name: "muddywaters", DisplayName: "Muddy Waters", PrimaryType: "Performer", SecondaryType: "Musician", TertiaryType: "Blues", Email: "muddy@waters.com", Website: "https://en.wikipedia.org/wiki/Muddy_Waters", Phone: "01223 666666", PlusCode: "54XW+23", StartTime: "11:30", EndTime: "12:30"},
+		{Name: "glazedandconfused", DisplayName: "Glazed and Confused", PrimaryType: "Vendor", SecondaryType: "Food", TertiaryType: "Doughnuts", Email: "admin@glazedandconfued.com", Website: "https://www.glazedandconfused.com", Phone: "01223 111111", PlusCode: "9F4254XQ+VG", StartTime: "09:00", EndTime: "15:00"},
+		{Name: "sushisquad", DisplayName: "Sushi Squad", PrimaryType: "Vendor", SecondaryType: "Food", TertiaryType: "Sushi", Email: "admin@sushisquad.com", Website: "https://www.sushisquad.com", Phone: "01223 222222", PlusCode: "9F4254XQ+XMG", StartTime: "09:00", EndTime: "15:00"},
+		{Name: "familyjewels", DisplayName: "Family Jewels", PrimaryType: "Vendor", SecondaryType: "Retail", TertiaryType: "Jewellery", Email: "admin@familyjewels.com", Website: "https://www.familyjewels.com", Phone: "01223 333333", PlusCode: "9F42642M+J8", StartTime: "09:00", EndTime: "16:00"},
+		{Name: "rollingstones", DisplayName: "The Rolling Stones", PrimaryType: "Performer", SecondaryType: "Musician", TertiaryType: "Rock", Email: "admin@rollingstones.com", Website: "https://rollingstones.com/", Phone: "01223 444444", PlusCode: "9F4254XW+23", StartTime: "09:30", EndTime: "10:30"},
+		{Name: "dukeellington", DisplayName: "Duke Ellington", PrimaryType: "Performer", SecondaryType: "Musician", TertiaryType: "Jazz", Email: "duke@ellington.com", Website: "https://en.wikipedia.org/wiki/Duke_Ellington", Phone: "01223 555555", PlusCode: "9F4254XW+23", StartTime: "10:30", EndTime: "11:30"},
+		{Name: "muddywaters", DisplayName: "Muddy Waters", PrimaryType: "Performer", SecondaryType: "Musician", TertiaryType: "Blues", Email: "muddy@waters.com", Website: "https://en.wikipedia.org/wiki/Muddy_Waters", Phone: "01223 666666", PlusCode: "9F4254XW+23", StartTime: "11:30", EndTime: "12:30"},
 	}
 
 	//Iterate through the testShops slice and insert each shop into the DB
