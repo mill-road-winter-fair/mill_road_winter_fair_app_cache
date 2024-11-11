@@ -4,8 +4,20 @@ The centralised database and API for the Mill Road Winter Fair App
 ## Purpose
 
 ### Potential Future Development Ideas
+- TBD
 
 ## Setting Up Your Local Environment
+
+### Environment Variables
+
+At present the only environment variable needed is the one to access the test data in the Google Sheets file found here: https://docs.google.com/spreadsheets/d/1-Dk_K8tvDJ4C9vSx0OJSEYhvhGrt6IEkabVRP83n0OM/edit
+
+This should be stored in `/helperScripts/.env` like so:
+```
+GOOGLE_SHEETS_API_KEY=*********************
+```
+Please request a copy of this key from the repository's owner.
+
 
 ### Prerequisites
 
