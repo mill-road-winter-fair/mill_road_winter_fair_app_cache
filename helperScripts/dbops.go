@@ -1,15 +1,20 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"flag"
 	"fmt"
+	"os"
 
 	"github.com/MarauderOne/mill_road_winter_fair_app_db_api/listings"
 	"github.com/MarauderOne/mill_road_winter_fair_app_db_api/shared"
 
 	"github.com/golang/glog"
+	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
+	"google.golang.org/api/option"
+	"google.golang.org/api/sheets/v4"
 )
 
 func main() {
@@ -38,7 +43,21 @@ func main() {
 			fmt.Println(message)
 		}
 	} else if *addData {
-		message, err := addTestingDataToLocalDb(db)
+
+		//Load the .env file
+		err := godotenv.Load()
+		if err != nil {
+			glog.Fatal("Error loading .env file")
+		}
+
+		//Get the Google Sheets API key
+		googleSheetsAPIKey := os.Getenv("GOOGLE_SHEETS_API_KEY")
+		if googleSheetsAPIKey == "" {
+			glog.Fatal("GOOGLE_SHEETS_API_KEY is not set in .env file")
+		}
+
+		message, err := addTestingDataToLocalDb(db, "1-Dk_K8tvDJ4C9vSx0OJSEYhvhGrt6IEkabVRP83n0OM", "A2:K100", googleSheetsAPIKey)
+
 		if err != nil {
 			glog.Fatalf("Error adding test data: %v", err)
 		} else {
@@ -49,32 +68,74 @@ func main() {
 	}
 }
 
-// Function to add test data to the local database
-func addTestingDataToLocalDb(db *sql.DB) (details string, err error) {
-
-	//Hardcoded slice of ShopData structs
-	testListings := []shared.ListingData{
-		{Name: "glazedandconfused", DisplayName: "Glazed and Confused", PrimaryType: "Vendor", SecondaryType: "Food", TertiaryType: "Doughnuts", Email: "admin@glazedandconfued.com", Website: "https://www.glazedandconfused.com", Phone: "01223 111111", PlusCode: "9F4254XQ+VG", StartTime: "09:00", EndTime: "15:00"},
-		{Name: "sushisquad", DisplayName: "Sushi Squad", PrimaryType: "Vendor", SecondaryType: "Food", TertiaryType: "Sushi", Email: "admin@sushisquad.com", Website: "https://www.sushisquad.com", Phone: "01223 222222", PlusCode: "9F4254XQ+XMG", StartTime: "09:00", EndTime: "15:00"},
-		{Name: "familyjewels", DisplayName: "Family Jewels", PrimaryType: "Vendor", SecondaryType: "Retail", TertiaryType: "Jewellery", Email: "admin@familyjewels.com", Website: "https://www.familyjewels.com", Phone: "01223 333333", PlusCode: "9F42642M+J8", StartTime: "09:00", EndTime: "16:00"},
-		{Name: "rollingstones", DisplayName: "The Rolling Stones", PrimaryType: "Performer", SecondaryType: "Musician", TertiaryType: "Rock", Email: "admin@rollingstones.com", Website: "https://rollingstones.com/", Phone: "01223 444444", PlusCode: "9F4254XW+23", StartTime: "09:30", EndTime: "10:30"},
-		{Name: "dukeellington", DisplayName: "Duke Ellington", PrimaryType: "Performer", SecondaryType: "Musician", TertiaryType: "Jazz", Email: "duke@ellington.com", Website: "https://en.wikipedia.org/wiki/Duke_Ellington", Phone: "01223 555555", PlusCode: "9F4254XW+23", StartTime: "10:30", EndTime: "11:30"},
-		{Name: "muddywaters", DisplayName: "Muddy Waters", PrimaryType: "Performer", SecondaryType: "Musician", TertiaryType: "Blues", Email: "muddy@waters.com", Website: "https://en.wikipedia.org/wiki/Muddy_Waters", Phone: "01223 666666", PlusCode: "9F4254XW+23", StartTime: "11:30", EndTime: "12:30"},
-		{Name: "knittingcircle", DisplayName: "Knitting Circle", PrimaryType: "Event", SecondaryType: "Craft", TertiaryType: "Knitting", Email: "", Website: "https://www.theknittingnetwork.co.uk/", Phone: "01223 777777", PlusCode: "9F4254XQ+R6", StartTime: "09:30", EndTime: "10:30"},
-		{Name: "standupcomedy", DisplayName: "Stand Up Comedy", PrimaryType: "Event", SecondaryType: "Performance", TertiaryType: "Comedy", Email: "", Website: "", Phone: "01223 888888", PlusCode: "9F4254XR+CQ", StartTime: "13:30", EndTime: "15:30"},
-		{Name: "publictoilets", DisplayName: "Public Toilets", PrimaryType: "Service", SecondaryType: "Toilets", TertiaryType: "Accessible", Email: "public@toilets.com", Website: "", Phone: "01223 999999", PlusCode: "9F4254XQ+RCX", StartTime: "09:00", EndTime: "17:00"},
+//Function to add the Google Sheets test data to the local database
+func addTestingDataToLocalDb(db *sql.DB, spreadsheetId, rangeName, apiKey string) (string, error) {
+	// Fetch data from Google Sheets
+	listingsFromSheet, err := fetchListingsFromSheet(spreadsheetId, rangeName, apiKey)
+	if err != nil {
+		glog.Errorf("Error fetching listings from Google Sheets: %v", err)
+		return "Failed to add data from Google Sheets", err
 	}
 
-	//Iterate through the testShops slice and insert each shop into the DB
-	for _, listing := range testListings {
+	//Insert each listing into the DB
+	for _, listing := range listingsFromSheet {
 		_, details, err := listings.CreateListingInDb(db, listing.Name, listing.DisplayName, listing.PrimaryType, listing.SecondaryType, listing.TertiaryType, listing.Email, listing.Website, listing.Phone, listing.PlusCode, listing.StartTime, listing.EndTime)
 		if err != nil {
-			glog.Errorf("Error adding testListings data: %v", details)
+			glog.Errorf("Error adding listing to DB: %v", details)
 			return details, err
 		}
 	}
 
-	return "Added test data to local DB successfully", nil
+	return "Added data from Google Sheets to local DB successfully", nil
+}
+
+//Function to fetch listings from Google Sheets
+func fetchListingsFromSheet(spreadsheetId, rangeName, apiKey string) ([]shared.ListingData, error) {
+	ctx := context.Background()
+
+	//Set up Sheets service with API key
+	srv, err := sheets.NewService(ctx, option.WithAPIKey(apiKey))
+	if err != nil {
+		return nil, fmt.Errorf("unable to retrieve Sheets client: %v", err)
+	}
+
+	//Read values from specified range
+	resp, err := srv.Spreadsheets.Values.Get(spreadsheetId, rangeName).Do()
+	if err != nil {
+		return nil, fmt.Errorf("unable to retrieve data from sheet: %v", err)
+	}
+
+	var listings []shared.ListingData
+	for i, row := range resp.Values {
+		if i == 0 {
+			// Skip header row
+			continue
+		}
+
+		if len(row) < 10 {
+			glog.Errorf("Skipping row %d: not enough columns", i+1)
+			continue
+		}
+
+		// Parse each column into ListingData
+		listing := shared.ListingData{
+			Name:          fmt.Sprintf("%v", row[0]),
+			DisplayName:   fmt.Sprintf("%v", row[1]),
+			PrimaryType:   fmt.Sprintf("%v", row[2]),
+			SecondaryType: fmt.Sprintf("%v", row[3]),
+			TertiaryType:  fmt.Sprintf("%v", row[4]),
+			Email:         fmt.Sprintf("%v", row[5]),
+			Website:       fmt.Sprintf("%v", row[6]),
+			Phone:         fmt.Sprintf("%v", row[7]),
+			PlusCode:      fmt.Sprintf("%v", row[8]),
+			StartTime:     fmt.Sprintf("%v", row[9]),
+			EndTime:       fmt.Sprintf("%v", row[10]),
+		}
+
+		listings = append(listings, listing)
+	}
+
+	return listings, nil
 }
 
 // Function to wipe the local database

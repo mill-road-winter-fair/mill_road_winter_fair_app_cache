@@ -13,7 +13,7 @@ func GetListingsFromDb(db *sql.DB) (dbStatus int, details string, rows *sql.Rows
 
 	query := "SELECT * FROM listings"
 	rows, err = db.Query(query)
-	
+
 	// ...or if some other error occurred
 	if err != nil {
 		glog.Errorf("Error retrieving listing from database: %v", err)

@@ -51,7 +51,7 @@ func main() {
 
 	//API endpoints to handle shop CRUD operations
 	webServer.GET("/listings", listings.GetListings)
-	
+
 	webServer.PUT("/listing", listings.CreateListing)
 	webServer.GET("/listing", listings.GetListing)
 	webServer.POST("/listing", listings.UpdateListing)

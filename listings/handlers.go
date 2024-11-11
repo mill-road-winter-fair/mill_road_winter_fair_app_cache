@@ -20,7 +20,7 @@ func GetListings(c *gin.Context) {
 		c.JSON(dbStatus, gin.H{"status": details, "error": err.Error()})
 		return
 	}
-	
+
 	//Ensure rows are closed after processing
 	defer rows.Close()
 
