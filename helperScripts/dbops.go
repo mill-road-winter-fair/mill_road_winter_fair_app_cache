@@ -22,6 +22,7 @@ func main() {
 	//Define flags
 	wipeDb := flag.Bool("wipe", false, "Wipe the local database")
 	addData := flag.Bool("add-data", false, "Add test data to the local database")
+	updateData := flag.Bool("update", false, "Wipe the local database and re-add the test data")
 
 	//Parse flags
 	flag.Parse()
@@ -42,8 +43,8 @@ func main() {
 		} else {
 			fmt.Println(message)
 		}
-	} else if *addData {
 
+	} else if *addData {
 		//Load the .env file
 		err := godotenv.Load()
 		if err != nil {
@@ -57,6 +58,34 @@ func main() {
 		}
 
 		message, err := addTestingDataToLocalDb(db, "1-Dk_K8tvDJ4C9vSx0OJSEYhvhGrt6IEkabVRP83n0OM", "A2:K100", googleSheetsAPIKey)
+
+		if err != nil {
+			glog.Fatalf("Error adding test data: %v", err)
+		} else {
+			fmt.Println(message)
+		}
+
+	} else if *updateData {
+		message, err := wipeLocalDb(db)
+		if err != nil {
+			glog.Fatalf("Error wiping DB: %v", err)
+		} else {
+			fmt.Println(message)
+		}
+
+		//Load the .env file
+		err = godotenv.Load()
+		if err != nil {
+			glog.Fatal("Error loading .env file")
+		}
+
+		//Get the Google Sheets API key
+		googleSheetsAPIKey := os.Getenv("GOOGLE_SHEETS_API_KEY")
+		if googleSheetsAPIKey == "" {
+			glog.Fatal("GOOGLE_SHEETS_API_KEY is not set in .env file")
+		}
+
+		message, err = addTestingDataToLocalDb(db, "1-Dk_K8tvDJ4C9vSx0OJSEYhvhGrt6IEkabVRP83n0OM", "A2:K100", googleSheetsAPIKey)
 
 		if err != nil {
 			glog.Fatalf("Error adding test data: %v", err)
