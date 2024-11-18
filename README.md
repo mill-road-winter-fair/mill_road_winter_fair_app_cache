@@ -68,7 +68,7 @@ CREATE TABLE listings (
 	email VARCHAR(100),
 	website VARCHAR(100),
 	phone VARCHAR(12),
-	pluscode VARCHAR(15),
+	latlng VARCHAR(30),
 	starttime VARCHAR(5),
 	endtime VARCHAR(5)
 );
@@ -100,7 +100,7 @@ erDiagram
         string email
         string website
         string phone
-        string pluscode
+        string latlng
         string starttime
         string endtime
     }

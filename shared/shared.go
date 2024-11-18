@@ -15,7 +15,7 @@ type ListingData struct {
 	Email         string `json:"email"`
 	Website       string `json:"website"`
 	Phone         string `json:"phone"`
-	PlusCode      string `json:"plusCode"`
+	LatLng        string `json:"latLng"`
 	StartTime     string `json:"startTime"`
 	EndTime       string `json:"endTime"`
 }
