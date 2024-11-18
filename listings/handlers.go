@@ -28,7 +28,7 @@ func GetListings(c *gin.Context) {
 	for rows.Next() {
 		var row shared.ListingData
 		//Map database row values to the struct fields
-		if err := rows.Scan(&row.Id, &row.Name, &row.DisplayName, &row.PrimaryType, &row.SecondaryType, &row.TertiaryType, &row.Email, &row.Website, &row.Phone, &row.PlusCode, &row.StartTime, &row.EndTime); err != nil {
+		if err := rows.Scan(&row.Id, &row.Name, &row.DisplayName, &row.PrimaryType, &row.SecondaryType, &row.TertiaryType, &row.Email, &row.Website, &row.Phone, &row.LatLng, &row.StartTime, &row.EndTime); err != nil {
 			glog.Fatalf("Scanning rows failed: %v", err)
 			c.JSON(500, gin.H{"status": "error", "error": "Failed to scan row data"})
 			return
@@ -54,7 +54,7 @@ func CreateListing(c *gin.Context) {
 
 	//Call the DB function
 	glog.Infof("Calling createListingInDb function with userInput: %v", userInput)
-	dbStatus, details, err := CreateListingInDb(shared.Database, userInput.Name, userInput.DisplayName, userInput.PrimaryType, userInput.SecondaryType, userInput.TertiaryType, userInput.Email, userInput.Website, userInput.Phone, userInput.PlusCode, userInput.StartTime, userInput.EndTime)
+	dbStatus, details, err := CreateListingInDb(shared.Database, userInput.Name, userInput.DisplayName, userInput.PrimaryType, userInput.SecondaryType, userInput.TertiaryType, userInput.Email, userInput.Website, userInput.Phone, userInput.LatLng, userInput.StartTime, userInput.EndTime)
 
 	if err != nil {
 		//Return the status code and body from the function
@@ -80,7 +80,7 @@ func GetListing(c *gin.Context) {
 
 	//Call the DB function
 	glog.Infof("Calling getListingFromDb function with userInput: %v", userInput)
-	dbStatus, details, name, displayname, primarytype, secondarytype, tertiarytype, email, website, phone, pluscode, starttime, endtime, err := GetListingFromDb(shared.Database, userInput.Id)
+	dbStatus, details, name, displayname, primarytype, secondarytype, tertiarytype, email, website, phone, latlng, starttime, endtime, err := GetListingFromDb(shared.Database, userInput.Id)
 
 	if err != nil {
 		//Return the status code and body from the function
@@ -89,7 +89,7 @@ func GetListing(c *gin.Context) {
 	}
 
 	//Return successful response
-	c.JSON(dbStatus, gin.H{"id": userInput.Id, "name": name, "displayName": displayname, "primarType": primarytype, "secondaryType": secondarytype, "tertiaryType": tertiarytype, "email": email, "website": website, "phone": phone, "plusCode": pluscode, "startTime": starttime, "endTime": endtime})
+	c.JSON(dbStatus, gin.H{"id": userInput.Id, "name": name, "displayName": displayname, "primarType": primarytype, "secondaryType": secondarytype, "tertiaryType": tertiarytype, "email": email, "website": website, "phone": phone, "latLng": latlng, "startTime": starttime, "endTime": endtime})
 	return
 }
 
@@ -106,7 +106,7 @@ func UpdateListing(c *gin.Context) {
 
 	//Call the DB function
 	glog.Infof("Calling getListingFromDb function with userInput: %v", userInput)
-	dbStatus, details, err := UpdateListingInDb(shared.Database, userInput.Id, userInput.Name, userInput.DisplayName, userInput.PrimaryType, userInput.SecondaryType, userInput.TertiaryType, userInput.Email, userInput.Website, userInput.Phone, userInput.PlusCode, userInput.StartTime, userInput.EndTime)
+	dbStatus, details, err := UpdateListingInDb(shared.Database, userInput.Id, userInput.Name, userInput.DisplayName, userInput.PrimaryType, userInput.SecondaryType, userInput.TertiaryType, userInput.Email, userInput.Website, userInput.Phone, userInput.LatLng, userInput.StartTime, userInput.EndTime)
 
 	if err != nil {
 		//Return the status code and body from the function

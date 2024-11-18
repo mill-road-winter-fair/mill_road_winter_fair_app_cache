@@ -97,7 +97,7 @@ func main() {
 	}
 }
 
-//Function to add the Google Sheets test data to the local database
+// Function to add the Google Sheets test data to the local database
 func addTestingDataToLocalDb(db *sql.DB, spreadsheetId, rangeName, apiKey string) (string, error) {
 	// Fetch data from Google Sheets
 	listingsFromSheet, err := fetchListingsFromSheet(spreadsheetId, rangeName, apiKey)
@@ -108,7 +108,7 @@ func addTestingDataToLocalDb(db *sql.DB, spreadsheetId, rangeName, apiKey string
 
 	//Insert each listing into the DB
 	for _, listing := range listingsFromSheet {
-		_, details, err := listings.CreateListingInDb(db, listing.Name, listing.DisplayName, listing.PrimaryType, listing.SecondaryType, listing.TertiaryType, listing.Email, listing.Website, listing.Phone, listing.PlusCode, listing.StartTime, listing.EndTime)
+		_, details, err := listings.CreateListingInDb(db, listing.Name, listing.DisplayName, listing.PrimaryType, listing.SecondaryType, listing.TertiaryType, listing.Email, listing.Website, listing.Phone, listing.LatLng, listing.StartTime, listing.EndTime)
 		if err != nil {
 			glog.Errorf("Error adding listing to DB: %v", details)
 			return details, err
@@ -118,7 +118,7 @@ func addTestingDataToLocalDb(db *sql.DB, spreadsheetId, rangeName, apiKey string
 	return "Added data from Google Sheets to local DB successfully", nil
 }
 
-//Function to fetch listings from Google Sheets
+// Function to fetch listings from Google Sheets
 func fetchListingsFromSheet(spreadsheetId, rangeName, apiKey string) ([]shared.ListingData, error) {
 	ctx := context.Background()
 
@@ -156,7 +156,7 @@ func fetchListingsFromSheet(spreadsheetId, rangeName, apiKey string) ([]shared.L
 			Email:         fmt.Sprintf("%v", row[5]),
 			Website:       fmt.Sprintf("%v", row[6]),
 			Phone:         fmt.Sprintf("%v", row[7]),
-			PlusCode:      fmt.Sprintf("%v", row[8]),
+			LatLng:        fmt.Sprintf("%v", row[8]),
 			StartTime:     fmt.Sprintf("%v", row[9]),
 			EndTime:       fmt.Sprintf("%v", row[10]),
 		}
