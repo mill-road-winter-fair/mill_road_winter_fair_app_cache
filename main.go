@@ -25,6 +25,13 @@ func main() {
 		glog.Fatal("Error loading .env file")
 	}
 
+	//Get the port from environment variables
+	port := os.Getenv("PORT")
+	//Define default port value if one is not set
+	if port == "" {
+		port = "8080"
+	}
+
 	// Start the data fetching in a separate goroutine
 	glog.Info("Starting fetch of data from Google Sheets API")
 	go fetchSheetData()
@@ -36,18 +43,8 @@ func main() {
 	//API endpoints to handle shop CRUD operations
 	webServer.GET("/listings", GetListingsFromCache)
 
-	//Define the default address & port (for local testing)
-	var address string = "127.0.0.1:"
-	var port string = "8080"
-
-	//If the PORT variable is present then we are likely runnning on Heroku, set address and port accordingly
-	if os.Getenv("PORT") != "8080" {
-		port = os.Getenv("PORT")
-		address = ":"
-	}
-
 	//Run the webserver
-	ginErr := webServer.Run(address + port)
+	ginErr := webServer.Run(":" + port)
 	if ginErr != nil {
 		glog.Fatalf("Web server initialisation failed: %v", ginErr)
 	}
