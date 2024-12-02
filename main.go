@@ -67,7 +67,7 @@ func GetListingsFromCache(c *gin.Context) {
 
 	//Return successful response with the processed JSON data
 	glog.Info("Returning 200 response")
-	c.Header("Content-Type", "application/json")
+	c.Header("Content-Type", "application/json; charset=UTF-8")
 	c.Data(http.StatusOK, "application/json", listingsJson)
 	return
 }
