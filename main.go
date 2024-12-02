@@ -19,17 +19,18 @@ func main() {
 	//Parse the argument flags (like the ones in Heroku's Procfile)
 	flag.Parse()
 
-	//Load the .env file
-	err := godotenv.Load()
-	if err != nil {
-		glog.Fatal("Error loading .env file")
-	}
-
 	//Get the port from environment variables
 	port := os.Getenv("PORT")
 	//Define default port value if one is not set
 	if port == "" {
+		//Use local port
 		port = "8080"
+
+		//If we're running locally we also need to load the .env file
+		err := godotenv.Load()
+		if err != nil {
+			glog.Fatal("Error loading .env file")
+		}
 	}
 
 	// Start the data fetching in a separate goroutine
