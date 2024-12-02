@@ -2,7 +2,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Run MRWF API",
+            "name": "Run MRWF Caching API",
             "type": "go",
             "request": "launch",
             "mode": "auto",
@@ -16,7 +16,7 @@
               ]
         },
         {
-            "name": "Debug - Run MRWF API",
+            "name": "Debug - Run MRWF Caching API",
             "type": "go",
             "request": "launch",
             "mode": "debug",
@@ -29,77 +29,5 @@
                 "-stderrthreshold=INFO"
               ]
         },
-        {
-            "name": "Add Test Data To Local DB",
-            "type": "go",
-            "request": "launch",
-            "mode": "auto",
-            "program": "${workspaceFolder}/helperScripts",
-            "args": [
-                "-add-data",
-                "-logtostderr=true",
-                "-stderrthreshold=INFO"
-              ]
-        },
-        {
-            "name": "Debug - Add Test Data To Local DB",
-            "type": "go",
-            "request": "launch",
-            "mode": "debug",
-            "program": "${workspaceFolder}/helperScripts",
-            "args": [
-                "-add-data",
-                "-logtostderr=true",
-                "-stderrthreshold=INFO"
-              ]
-        },
-        {
-            "name": "Wipe Local DB",
-            "type": "go",
-            "request": "launch",
-            "mode": "auto",
-            "program": "${workspaceFolder}/helperScripts",
-            "args": [
-                "-wipe",
-                "-logtostderr=true",
-                "-stderrthreshold=INFO"
-              ]
-        },
-        {
-            "name": "Debug - Wipe Local DB",
-            "type": "go",
-            "request": "launch",
-            "mode": "debug",
-            "program": "${workspaceFolder}/helperScripts",
-            "args": [
-                "-wipe",
-                "-logtostderr=true",
-                "-stderrthreshold=INFO"
-              ]
-        },
-        {
-            "name": "Update Local DB",
-            "type": "go",
-            "request": "launch",
-            "mode": "auto",
-            "program": "${workspaceFolder}/helperScripts",
-            "args": [
-                "-update",
-                "-logtostderr=true",
-                "-stderrthreshold=INFO"
-              ]
-        },
-        {
-            "name": "Debug - Update Local DB",
-            "type": "go",
-            "request": "launch",
-            "mode": "debug",
-            "program": "${workspaceFolder}/helperScripts",
-            "args": [
-                "-update",
-                "-logtostderr=true",
-                "-stderrthreshold=INFO"
-              ]
-        }
     ]
 }
