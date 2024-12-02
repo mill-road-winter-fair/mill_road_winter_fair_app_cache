@@ -1,111 +1,29 @@
-# Mill Road Winter Fair App Database & API
-The centralised database and API for the Mill Road Winter Fair App
+# Mill Road Winter Fair App Caching API
+Originally this repository was the home for an entire API and database used by the Mill Road Winter Fair App. However it has now been stripped back to a simple caching system. If for some reason the old code is needed, check out the followiong commit: `865addb7e09fe0a647765de87eef22ab104320b1`
 
 ## Purpose
+The purpose of this application is to act as a wrapper for the Google Sheets API in order to prevent excessive calls by the Mill Road Winter Fair App.
 
 ### Potential Future Development Ideas
-- TBD
+- Add validation which removes incomplete records.
 
 ## Setting Up Your Local Environment
 
 ### Environment Variables
 
-At present the only environment variable needed is the one to access the test data in the Google Sheets file found here: https://docs.google.com/spreadsheets/d/1-Dk_K8tvDJ4C9vSx0OJSEYhvhGrt6IEkabVRP83n0OM/edit
+At present these are the only environment variables needed to run the application. They allow the application contact the following Google Sheet: https://docs.google.com/spreadsheets/d/1hkx3d4eVw2roFIEDdrYkpT0wwHKBdx7YaZP8vc-Cg2o/view
 
-This should be stored in `/helperScripts/.env` like so:
+These should be stored in `.env` like so:
 ```
 GOOGLE_SHEETS_API_KEY=*********************
+GOOGLE_SHEET_ID=1hkx3d4eVw2roFIEDdrYkpT0wwHKBdx7YaZP8vc-Cg2o
+GOOGLE_SHEET_RANGE=A1:L200
 ```
-Please request a copy of this key from the repository's owner.
+Please request a copy of the API key from the repository's owner.
 
 
 ### Prerequisites
-
-**1. Install PostgreSQL Locally:**
-- macOS: Use Homebrew:
-```shell
-brew install postgresql
-brew services start postgresql
-```
-
-- Ubuntu: Use APT:
-```shell
-sudo apt update
-sudo apt install postgresql postgresql-contrib
-sudo systemctl start postgresql
-```
-
-- Windows: Download and install PostgreSQL from the official [website](https://www.postgresql.org/download/).
-
-Once installed, log in as the postgres user:
-
-```shell
-sudo -u postgres psql
-```
-
-**2. Create a database and user:**
-```sql
-CREATE DATABASE barberqueue_db;
-CREATE USER mrwfadmin WITH ENCRYPTED PASSWORD 'petersfield';
-GRANT ALL PRIVILEGES ON DATABASE barberqueue_db TO admin;
-```
-
-**3. In the respository, install the PostgreSQL driver:**
-```shell
-go get -u github.com/lib/pq
-```
-
-**4. Create the schema in the `mrwf_db` (I used the VSCode Postgre plugin for running queries like this.):**
-
-```postgresql
-CREATE TABLE listings (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(100),
-	displayname VARCHAR(100),
-	primarytype VARCHAR(100),
-	secondarytype VARCHAR(100),
-	tertiarytype VARCHAR(100),
-	email VARCHAR(100),
-	website VARCHAR(100),
-	phone VARCHAR(12),
-	latlng VARCHAR(30),
-	starttime VARCHAR(5),
-	endtime VARCHAR(5)
-);
-```
-
-**5. You should now be able to run the db & API locally.**
-
-## Helper Scripts
-You can find the following helper scripts in `/helperScripts`:
-
-| Name                         | Descriptionn                                                  | Execution                      |
-| ---------------------------- | ------------------------------------------------------------- | ------------------------------ |
-| Add Testing Data To Local DB | Adds a number of example listings for testing purposes.       | `./addTestingDataToLocalDB.sh` |
-| Wipe Local DB                | Wipes all data from the local DB. Leaves the schema in place. | `./wipeLocalDB.sh`             |
-
-## DB Schema
-Below is a graphical representation of the current database schema:
-
-```mermaid
-erDiagram
-
-    listings {
-        serial_key id
-        string name
-        string displayname
-        string primarytype
-        string secondarytype
-        string tertiarytype
-        string email
-        string website
-        string phone
-        string latlng
-        string starttime
-        string endtime
-    }
-
-```
+- n/a 
 
 ## Postman API Documentation
 
