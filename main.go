@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
 	"io"
@@ -25,7 +26,9 @@ func main() {
 	if port == "" {
 		//Use local port
 		port = "8080"
+	}
 
+	if port == "8080" {
 		//If we're running locally we also need to load the .env file
 		err := godotenv.Load()
 		if err != nil {
@@ -33,12 +36,17 @@ func main() {
 		}
 	}
 
+	if port != "8080" {
+		//If we're not running locally set Gin to Release mode
+		gin.SetMode(gin.ReleaseMode)
+	}
+
 	// Start the data fetching in a separate goroutine
 	glog.Info("Starting fetch of data from Google Sheets API")
 	go fetchSheetData()
 
 	//Create default webserver config
-	glog.Info("Startign web server")
+	glog.Info("Starting web server")
 	webServer := gin.Default()
 
 	//API endpoints to handle shop CRUD operations
@@ -104,7 +112,7 @@ func fetchSheetData() {
 
 	glog.Info("Making HTTP call to Google Sheets API")
 	url := fmt.Sprintf("https://sheets.googleapis.com/v4/spreadsheets/%s/values/%s?key=%s", sheetID, rangeValue, apiKey)
-	
+
 	glog.Info("Beginning one minute delay")
 	ticker := time.NewTicker(1 * time.Minute)
 	defer ticker.Stop()
@@ -120,29 +128,31 @@ func fetchSheetData() {
 				glog.Errorf("Error fetching data: %v\n", err)
 				continue
 			}
-			defer resp.Body.Close()
 
-			if resp.StatusCode != http.StatusOK {
-				glog.Errorf("Non-200 response: %d\n", resp.StatusCode)
-				continue
-			}
+			func() {
+				defer resp.Body.Close()
 
-			body, err := io.ReadAll(resp.Body)
-			if err != nil {
-				glog.Errorf("Error reading response body: %v\n", err)
-				continue
-			}
+				if resp.StatusCode != http.StatusOK {
+					glog.Errorf("Non-200 response: %d\n", resp.StatusCode)
+					return
+				}
 
-			// Check if data has changed
-			if string(body) != string(lastFetchedData) {
-				glog.Info("Data updated.")
-				mu.Lock()
-				sheetData = body
-				mu.Unlock()
-				lastFetchedData = body
-			} else {
-				glog.Info("No changes in data.")
-			}
+				body, err := io.ReadAll(resp.Body)
+				if err != nil {
+					glog.Errorf("Error reading response body: %v\n", err)
+					return
+				}
+
+				if !bytes.Equal(body, lastFetchedData) {
+					glog.Info("Data updated.")
+					mu.Lock()
+					sheetData = body
+					mu.Unlock()
+					lastFetchedData = body
+				} else {
+					glog.Info("No changes in data.")
+				}
+			}()
 		}
 	}
 }

@@ -17,7 +17,7 @@ These should be stored in `.env` like so:
 ```
 GOOGLE_SHEETS_API_KEY=*********************
 GOOGLE_SHEET_ID=1hkx3d4eVw2roFIEDdrYkpT0wwHKBdx7YaZP8vc-Cg2o
-GOOGLE_SHEET_RANGE=A1:L200
+GOOGLE_SHEET_RANGE=A1:L300
 ```
 Please request a copy of the API key from the repository's owner.
 
