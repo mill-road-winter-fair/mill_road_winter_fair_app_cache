@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
 	"io"
@@ -25,7 +26,9 @@ func main() {
 	if port == "" {
 		//Use local port
 		port = "8080"
+	}
 
+	if port == "8080" {
 		//If we're running locally we also need to load the .env file
 		err := godotenv.Load()
 		if err != nil {
@@ -38,7 +41,7 @@ func main() {
 	go fetchSheetData()
 
 	//Create default webserver config
-	glog.Info("Startign web server")
+	glog.Info("Starting web server")
 	webServer := gin.Default()
 
 	//API endpoints to handle shop CRUD operations
@@ -120,29 +123,31 @@ func fetchSheetData() {
 				glog.Errorf("Error fetching data: %v\n", err)
 				continue
 			}
-			defer resp.Body.Close()
-
-			if resp.StatusCode != http.StatusOK {
-				glog.Errorf("Non-200 response: %d\n", resp.StatusCode)
-				continue
-			}
-
-			body, err := io.ReadAll(resp.Body)
-			if err != nil {
-				glog.Errorf("Error reading response body: %v\n", err)
-				continue
-			}
-
-			// Check if data has changed
-			if string(body) != string(lastFetchedData) {
-				glog.Info("Data updated.")
-				mu.Lock()
-				sheetData = body
-				mu.Unlock()
-				lastFetchedData = body
-			} else {
-				glog.Info("No changes in data.")
-			}
+		
+			func() {
+				defer resp.Body.Close()
+		
+				if resp.StatusCode != http.StatusOK {
+					glog.Errorf("Non-200 response: %d\n", resp.StatusCode)
+					return
+				}
+		
+				body, err := io.ReadAll(resp.Body)
+				if err != nil {
+					glog.Errorf("Error reading response body: %v\n", err)
+					return
+				}
+		
+				if !bytes.Equal(body, lastFetchedData) {
+					glog.Info("Data updated.")
+					mu.Lock()
+					sheetData = body
+					mu.Unlock()
+					lastFetchedData = body
+				} else {
+					glog.Info("No changes in data.")
+				}
+			}()		
 		}
 	}
 }
