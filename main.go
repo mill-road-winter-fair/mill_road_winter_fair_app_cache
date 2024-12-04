@@ -36,6 +36,11 @@ func main() {
 		}
 	}
 
+	if port != "8080" {
+		//If we're not running locally set Gin to Release mode
+		gin.SetMode(gin.ReleaseMode)
+	}
+
 	// Start the data fetching in a separate goroutine
 	glog.Info("Starting fetch of data from Google Sheets API")
 	go fetchSheetData()
@@ -107,7 +112,7 @@ func fetchSheetData() {
 
 	glog.Info("Making HTTP call to Google Sheets API")
 	url := fmt.Sprintf("https://sheets.googleapis.com/v4/spreadsheets/%s/values/%s?key=%s", sheetID, rangeValue, apiKey)
-	
+
 	glog.Info("Beginning one minute delay")
 	ticker := time.NewTicker(1 * time.Minute)
 	defer ticker.Stop()
@@ -123,21 +128,21 @@ func fetchSheetData() {
 				glog.Errorf("Error fetching data: %v\n", err)
 				continue
 			}
-		
+
 			func() {
 				defer resp.Body.Close()
-		
+
 				if resp.StatusCode != http.StatusOK {
 					glog.Errorf("Non-200 response: %d\n", resp.StatusCode)
 					return
 				}
-		
+
 				body, err := io.ReadAll(resp.Body)
 				if err != nil {
 					glog.Errorf("Error reading response body: %v\n", err)
 					return
 				}
-		
+
 				if !bytes.Equal(body, lastFetchedData) {
 					glog.Info("Data updated.")
 					mu.Lock()
@@ -147,7 +152,7 @@ func fetchSheetData() {
 				} else {
 					glog.Info("No changes in data.")
 				}
-			}()		
+			}()
 		}
 	}
 }
