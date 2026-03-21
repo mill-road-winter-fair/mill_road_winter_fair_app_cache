@@ -4,30 +4,30 @@ Originally this repository was the home for an entire API and database used by t
 ## Purpose
 The purpose of this application is to act as a wrapper for the Google Sheets API in order to prevent excessive calls by the Mill Road Winter Fair App.
 
-### Potential Future Development Ideas
-- Add validation which removes incomplete records.
-
 ## Setting Up Your Local Environment
+1. Install [Git for Windows](https://git-scm.com/downloads/win).
+
+2. Clone this repository to your local environment using `git clone`.
+
+3. Install [Go](https://go.dev/doc/).
 
 ### Environment Variables
 
-At present these are the only environment variables needed to run the application. They allow the application contact the following Google Sheet: https://docs.google.com/spreadsheets/d/1hkx3d4eVw2roFIEDdrYkpT0wwHKBdx7YaZP8vc-Cg2o/view
+At present these are the only environment variables needed to run the application. They allow the application to contact the following Google Sheet: https://docs.google.com/spreadsheets/d/1hkx3d4eVw2roFIEDdrYkpT0wwHKBdx7YaZP8vc-Cg2o/view
 
 These should be stored in `.env` like so:
 ```
 GOOGLE_SHEETS_API_KEY=*********************
 GOOGLE_SHEET_ID=1hkx3d4eVw2roFIEDdrYkpT0wwHKBdx7YaZP8vc-Cg2o
-GOOGLE_SHEET_RANGE=A1:L300
+GOOGLE_SHEET_RANGE=2025!A1:N350
 ```
 Please request a copy of the API key from the repository's owner.
-
 
 ### Prerequisites
 - n/a 
 
-## Postman API Documentation
-
-Example API use cases can be found on Postman, [here](https://orange-crater-235389.postman.co/workspace/Mill-Road-Winter-Fair-App-API~2f3cf4fe-aa38-46a2-bd71-d2b5fa5e76fb/overview).
-
 ## Other Links
-- Mill Road Winter Fair App: https://github.com/MarauderOne/mill_road_winter_fair_app
+- [Mill Road Winter Fair App code](https://github.com/MarauderOne/mill_road_winter_fair_app)
+- [Test Data Spreadsheet](https://docs.google.com/spreadsheets/d/1-Dk_K8tvDJ4C9vSx0OJSEYhvhGrt6IEkabVRP83n0OM/edit?usp=sharing)
+- [Prod Data Spreadsheet](https://docs.google.com/spreadsheets/d/1hkx3d4eVw2roFIEDdrYkpT0wwHKBdx7YaZP8vc-Cg2o/edit?usp=sharing)
+- [Go Documentation](https://go.dev/doc/)
