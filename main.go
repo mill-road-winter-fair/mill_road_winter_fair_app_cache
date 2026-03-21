@@ -17,10 +17,10 @@ import (
 
 func main() {
 
-	//Parse the argument flags (like the ones in Heroku's Procfile)
+	// Parse the argument flags (like the ones in Heroku's Procfile)
 	flag.Parse()
 
-	//Get the port from environment variables
+	// Get the port from environment variables
 	port := os.Getenv("PORT")
 	//Define default port value if one is not set
 	if port == "" {
@@ -29,7 +29,7 @@ func main() {
 	}
 
 	if port == "8080" {
-		//If we're running locally we also need to load the .env file
+		// If we're running locally we also need to load the .env file
 		err := godotenv.Load()
 		if err != nil {
 			glog.Fatal("Error loading .env file")
@@ -37,7 +37,7 @@ func main() {
 	}
 
 	if port != "8080" {
-		//If we're not running locally set Gin to Release mode
+		// If we're not running locally set Gin to Release mode
 		gin.SetMode(gin.ReleaseMode)
 	}
 
@@ -45,14 +45,14 @@ func main() {
 	glog.Info("Starting fetch of data from Google Sheets API")
 	go fetchSheetData()
 
-	//Create default webserver config
+	// Create default webserver config
 	glog.Info("Starting web server")
 	webServer := gin.Default()
 
-	//API endpoints to handle shop CRUD operations
+	// API endpoints to handle shop CRUD operations
 	webServer.GET("/listings", GetListingsFromCache)
 
-	//Run the webserver
+	// Run the webserver
 	ginErr := webServer.Run(":" + port)
 	if ginErr != nil {
 		glog.Fatalf("Web server initialisation failed: %v", ginErr)
@@ -62,18 +62,18 @@ func main() {
 func GetListingsFromCache(c *gin.Context) {
 	var listingsJson []byte
 
-	//Call the DB function
+	// Call the DB function
 	glog.Info("Calling getSheetDataFromCache function")
 	listingsJson, err := getSheetDataFromCache()
 
 	if err != nil {
-		//Return the status code and body from the function
+		// Return the status code and body from the function
 		glog.Error("Returning 500 response")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	//Return successful response with the processed JSON data
+	// Return successful response with the processed JSON data
 	glog.Info("Returning 200 response")
 	c.Header("Content-Type", "application/json; charset=UTF-8")
 	c.Data(http.StatusOK, "application/json", listingsJson)
