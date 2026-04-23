@@ -54,7 +54,10 @@ func main() {
 
 	// API endpoint to handle listings GET operations
 	webServer.GET("/listings", func(c *gin.Context) {
-		key := c.Query("key")
+		key := c.GetHeader("X-API-Key")
+		if key == "" {
+			key = c.Query("key")
+		}
 		if key == "" {
 			glog.Warning("Missing key parameter")
 			// The first step is to return the listings from the cache, even if the key is missing or invalid. This way, users can still access the data without providing a key, but we will be informed about the missing or invalid key in the logs.
