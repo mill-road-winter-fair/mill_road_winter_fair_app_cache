@@ -15,10 +15,16 @@ import (
 	"github.com/joho/godotenv"
 )
 
+// Define global variables
+var ourApiKey string
+
 func main() {
 
 	// Parse the argument flags (like the ones in Heroku's Procfile)
 	flag.Parse()
+
+	// Validate the API key in the .env file
+	ValidateApiKey()
 
 	// Get the port from environment variables
 	port := os.Getenv("PORT")
@@ -59,13 +65,20 @@ func main() {
 	}
 }
 
-func ListingsEndpoint(c *gin.Context) {
-	// Get environment variables
-	ourApiKey := os.Getenv("OUR_API_KEY")
+func ValidateApiKey() {
+	err := godotenv.Load()
+		if err != nil {
+			glog.Fatal("Error loading .env file")
+		}
+
+	// Get api key environment variable
+	ourApiKey = os.Getenv("OUR_API_KEY")
 	if ourApiKey == "" {
 		glog.Fatal("OUR_API_KEY environment variable is not set")
 	}
+}
 
+func ListingsEndpoint(c *gin.Context) {
 	key := c.GetHeader("X-API-Key")
 	if key == "" {
 		key = c.Query("key")

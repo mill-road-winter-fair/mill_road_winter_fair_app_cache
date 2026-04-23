@@ -9,6 +9,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// Define global variables for tests
+var testApiKey = "fakeApiKeyForTesting"
 var testSheetData = []byte(`[{"name": "Test Listing"}]`)
 
 // Setup function for tests
@@ -23,12 +25,13 @@ func setupRouter() *gin.Engine {
 func TestGetListingsFromCache_ValidKey_Success(t *testing.T) {
 	// Set up test data
 	mu.Lock()
+	ourApiKey = testApiKey
 	sheetData = testSheetData
 	mu.Unlock()
 
 	router := setupRouter()
 
-	// Create a test HTTP request
+	// Create an test HTTP request
 	req, _ := http.NewRequest("GET", "/listings", nil)
 	req.Header.Add("X-API-Key", "fakeApiKeyForTesting")
 	resp := httptest.NewRecorder()
@@ -46,12 +49,13 @@ func TestGetListingsFromCache_ValidKey_Success(t *testing.T) {
 func TestGetListingsFromCache_InvalidKey_Success(t *testing.T) {
 	// Set up test data
 	mu.Lock()
+	ourApiKey = testApiKey
 	sheetData = testSheetData
 	mu.Unlock()
 
 	router := setupRouter()
 
-	// Create a test HTTP request
+	// Create an test HTTP request
 	req, _ := http.NewRequest("GET", "/listings", nil)
 	req.Header.Add("X-API-Key", "invalidApiKeyForTesting")
 	resp := httptest.NewRecorder()
@@ -69,12 +73,13 @@ func TestGetListingsFromCache_InvalidKey_Success(t *testing.T) {
 func TestGetListingsFromCache_MissingKey_Success(t *testing.T) {
 	// Set up test data
 	mu.Lock()
+	ourApiKey = testApiKey
 	sheetData = testSheetData
 	mu.Unlock()
 
 	router := setupRouter()
 
-	// Create a test HTTP request
+	// Create an test HTTP request
 	req, _ := http.NewRequest("GET", "/listings", nil)
 	req.Header.Add("X-API-Key", "")
 	resp := httptest.NewRecorder()
