@@ -62,6 +62,9 @@ func main() {
 func ListingsEndpoint(c *gin.Context) {
 	// Get environment variables
 	ourApiKey := os.Getenv("OUR_API_KEY")
+	if ourApiKey == "" {
+		glog.Fatal("OUR_API_KEY environment variable is not set")
+	}
 
 	key := c.GetHeader("X-API-Key")
 	if key == "" {
