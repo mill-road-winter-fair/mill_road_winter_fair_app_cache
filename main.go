@@ -86,7 +86,7 @@ func ListingsEndpoint(c *gin.Context) {
 		key = c.Query("key")
 	}
 	if key == "" {
-		glog.Warning("Missing key parameter")
+		glog.Warning("Missing key parameter, returning listings anyway")
 		// The first step is to return the listings from the cache, even if the key is missing or invalid. This way, users can still access the data without providing a key, but we will be informed about the missing or invalid key in the logs.
 		// Once we have the logs, we can decide whether to enforce the key requirement in the future. To begin with, we will allow access to the listings even if the key is missing or invalid, but we will log a warning message in both cases.
 		GetListingsFromCache(c)
@@ -94,7 +94,7 @@ func ListingsEndpoint(c *gin.Context) {
 		return
 	}
 	if key != ourApiKey {
-		glog.Warning("Invalid key provided")
+		glog.Warning("Invalid key provided, returning listings anyway")
 		// The first step is to return the listings from the cache, even if the key is missing or invalid. This way, users can still access the data without providing a key, but we will be informed about the missing or invalid key in the logs.
 		// Once we have the logs, we can decide whether to enforce the key requirement in the future. To begin with, we will allow access to the listings even if the key is missing or invalid, but we will log a warning message in both cases.
 		GetListingsFromCache(c)
