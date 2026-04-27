@@ -23,9 +23,6 @@ func main() {
 	// Parse the argument flags (like the ones in Heroku's Procfile)
 	flag.Parse()
 
-	// Validate the API key in the .env file
-	ValidateApiKey()
-
 	// Get the port from environment variables
 	port := os.Getenv("PORT")
 	//Define default port value if one is not set
@@ -47,6 +44,9 @@ func main() {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
+	// Validate the API key
+	ValidateApiKey()
+
 	// Start the data fetching in a separate goroutine
 	glog.Info("Starting fetch of data from Google Sheets API")
 	go fetchSheetData()
@@ -66,11 +66,6 @@ func main() {
 }
 
 func ValidateApiKey() {
-	err := godotenv.Load()
-		if err != nil {
-			glog.Fatal("Error loading .env file")
-		}
-
 	// Get api key environment variable
 	ourApiKey = os.Getenv("OUR_API_KEY")
 	if ourApiKey == "" {
