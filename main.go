@@ -15,6 +15,16 @@ import (
 	"github.com/joho/godotenv"
 )
 
+var (
+	// Shared variable to store the fetched JSON
+	sheetData []byte
+	// Mutex to synchronize access to `sheetData`
+	mu sync.Mutex
+
+	// ourApiKey holds the expected API key loaded from environment variables.
+	ourApiKey string
+)
+
 func main() {
 
 	// Parse the argument flags (like the ones in Heroku's Procfile)
@@ -115,13 +125,6 @@ func GetListingsFromCache(c *gin.Context) {
 	c.Data(http.StatusOK, "application/json", listingsJson)
 	return
 }
-
-var (
-	// Shared variable to store the fetched JSON
-	sheetData []byte
-	// Mutex to synchronize access to `sheetData`
-	mu sync.Mutex
-)
 
 // getSheetData returns the cached JSON data.
 func getSheetDataFromCache() ([]byte, error) {
