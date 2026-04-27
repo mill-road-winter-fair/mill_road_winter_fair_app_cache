@@ -15,16 +15,10 @@ import (
 	"github.com/joho/godotenv"
 )
 
-// Define global variables
-var ourApiKey string
-
 func main() {
 
 	// Parse the argument flags (like the ones in Heroku's Procfile)
 	flag.Parse()
-
-	// Validate the API key in the .env file
-	ValidateApiKey()
 
 	// Get the port from environment variables
 	port := os.Getenv("PORT")
@@ -55,52 +49,14 @@ func main() {
 	glog.Info("Starting web server")
 	webServer := gin.Default()
 
-	// API endpoint to handle listings GET operations
-	webServer.GET("/listings", ListingsEndpoint)
+	// API endpoints to handle shop CRUD operations
+	webServer.GET("/listings", GetListingsFromCache)
 
 	// Run the webserver
 	ginErr := webServer.Run(":" + port)
 	if ginErr != nil {
 		glog.Fatalf("Web server initialisation failed: %v", ginErr)
 	}
-}
-
-func ValidateApiKey() {
-	err := godotenv.Load()
-		if err != nil {
-			glog.Fatal("Error loading .env file")
-		}
-
-	// Get api key environment variable
-	ourApiKey = os.Getenv("OUR_API_KEY")
-	if ourApiKey == "" {
-		glog.Fatal("OUR_API_KEY environment variable is not set")
-	}
-}
-
-func ListingsEndpoint(c *gin.Context) {
-	key := c.GetHeader("X-API-Key")
-	if key == "" {
-		key = c.Query("key")
-	}
-	if key == "" {
-		glog.Warning("Missing key parameter")
-		// The first step is to return the listings from the cache, even if the key is missing or invalid. This way, users can still access the data without providing a key, but we will be informed about the missing or invalid key in the logs.
-		// Once we have the logs, we can decide whether to enforce the key requirement in the future. To begin with, we will allow access to the listings even if the key is missing or invalid, but we will log a warning message in both cases.
-		GetListingsFromCache(c)
-		//c.JSON(http.StatusBadRequest, gin.H{"error": "missing key parameter"})
-		return
-	}
-	if key != ourApiKey {
-		glog.Warning("Invalid key provided")
-		// The first step is to return the listings from the cache, even if the key is missing or invalid. This way, users can still access the data without providing a key, but we will be informed about the missing or invalid key in the logs.
-		// Once we have the logs, we can decide whether to enforce the key requirement in the future. To begin with, we will allow access to the listings even if the key is missing or invalid, but we will log a warning message in both cases.
-		GetListingsFromCache(c)
-		//c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid key"})
-		return
-	}
-	glog.Info("Valid key provided, returning listings")
-	GetListingsFromCache(c)
 }
 
 func GetListingsFromCache(c *gin.Context) {
@@ -145,17 +101,17 @@ func getSheetDataFromCache() ([]byte, error) {
 // fetchSheetData fetches data from the Google Sheets API at regular intervals.
 func fetchSheetData() {
 	// Get environment variables
-	googleSheetsApiKey := os.Getenv("GOOGLE_SHEETS_API_KEY")
-	googleSheetID := os.Getenv("GOOGLE_SHEET_ID")
-	googleSheetRange := os.Getenv("GOOGLE_SHEET_RANGE")
+	apiKey := os.Getenv("GOOGLE_SHEETS_API_KEY")
+	sheetID := os.Getenv("GOOGLE_SHEET_ID")
+	rangeValue := os.Getenv("GOOGLE_SHEET_RANGE")
 
-	if googleSheetID == "" || googleSheetsApiKey == "" || googleSheetRange == "" {
+	if sheetID == "" || apiKey == "" || rangeValue == "" {
 		glog.Error("Environment variables GOOGLE_SHEETS_API_KEY, GOOGLE_SHEET_ID, and GOOGLE_SHEET_RANGE must be set.")
 		return
 	}
 
 	glog.Info("Making HTTP call to Google Sheets API")
-	url := fmt.Sprintf("https://sheets.googleapis.com/v4/spreadsheets/%s/values/%s?key=%s", googleSheetID, googleSheetRange, googleSheetsApiKey)
+	url := fmt.Sprintf("https://sheets.googleapis.com/v4/spreadsheets/%s/values/%s?key=%s", sheetID, rangeValue, apiKey)
 
 	glog.Info("Beginning one minute delay")
 	ticker := time.NewTicker(1 * time.Minute)

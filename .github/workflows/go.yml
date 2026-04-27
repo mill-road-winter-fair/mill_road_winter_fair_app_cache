@@ -21,12 +21,6 @@ jobs:
       with:
         go-version: '1.23'
 
-    - name: Create env file
-      run: | 
-        touch .env
-        echo "OUR_API_KEY=fakeApiKeyForTesting" >> .env
-        cat .env
-
     - name: Build
       run: go build -v ./...
 
