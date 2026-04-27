@@ -63,7 +63,7 @@ func main() {
 	webServer := gin.Default()
 
 	// API endpoints to handle shop CRUD operations
-	webServer.GET("/listings", GetListingsFromCache)
+	webServer.GET("/listings", ListingsEndpoint)
 
 	// Run the webserver
 	ginErr := webServer.Run(":" + port)
