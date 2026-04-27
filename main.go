@@ -123,7 +123,6 @@ func GetListingsFromCache(c *gin.Context) {
 	glog.Info("Returning 200 response")
 	c.Header("Content-Type", "application/json; charset=UTF-8")
 	c.Data(http.StatusOK, "application/json", listingsJson)
-	return
 }
 
 // getSheetData returns the cached JSON data.
