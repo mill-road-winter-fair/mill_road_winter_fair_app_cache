@@ -15,6 +15,16 @@ import (
 	"github.com/joho/godotenv"
 )
 
+var (
+	// Shared variable to store the fetched JSON
+	sheetData []byte
+	// Mutex to synchronize access to `sheetData`
+	mu sync.Mutex
+
+	// ourApiKey holds the expected API key loaded from environment variables.
+	ourApiKey string
+)
+
 func main() {
 
 	// Parse the argument flags (like the ones in Heroku's Procfile)
@@ -41,6 +51,9 @@ func main() {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
+	// Validate the API key
+	ValidateApiKey()
+
 	// Start the data fetching in a separate goroutine
 	glog.Info("Starting fetch of data from Google Sheets API")
 	go fetchSheetData()
@@ -50,13 +63,46 @@ func main() {
 	webServer := gin.Default()
 
 	// API endpoints to handle shop CRUD operations
-	webServer.GET("/listings", GetListingsFromCache)
+	webServer.GET("/listings", ListingsEndpoint)
 
 	// Run the webserver
 	ginErr := webServer.Run(":" + port)
 	if ginErr != nil {
 		glog.Fatalf("Web server initialisation failed: %v", ginErr)
 	}
+}
+
+func ValidateApiKey() {
+	// Get api key environment variable
+	ourApiKey = os.Getenv("OUR_API_KEY")
+	if ourApiKey == "" {
+		glog.Fatal("OUR_API_KEY environment variable is not set")
+	}
+}
+
+func ListingsEndpoint(c *gin.Context) {
+	key := c.GetHeader("X-API-Key")
+	if key == "" {
+		key = c.Query("key")
+	}
+	if key == "" {
+		glog.Warning("Missing key parameter, returning listings anyway")
+		// The first step is to return the listings from the cache, even if the key is missing or invalid. This way, users can still access the data without providing a key, but we will be informed about the missing or invalid key in the logs.
+		// Once we have the logs, we can decide whether to enforce the key requirement in the future. To begin with, we will allow access to the listings even if the key is missing or invalid, but we will log a warning message in both cases.
+		GetListingsFromCache(c)
+		//c.JSON(http.StatusBadRequest, gin.H{"error": "missing key parameter"})
+		return
+	}
+	if key != ourApiKey {
+		glog.Warning("Invalid key provided, returning listings anyway")
+		// The first step is to return the listings from the cache, even if the key is missing or invalid. This way, users can still access the data without providing a key, but we will be informed about the missing or invalid key in the logs.
+		// Once we have the logs, we can decide whether to enforce the key requirement in the future. To begin with, we will allow access to the listings even if the key is missing or invalid, but we will log a warning message in both cases.
+		GetListingsFromCache(c)
+		//c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid key"})
+		return
+	}
+	glog.Info("Valid key provided, returning listings")
+	GetListingsFromCache(c)
 }
 
 func GetListingsFromCache(c *gin.Context) {
@@ -77,15 +123,7 @@ func GetListingsFromCache(c *gin.Context) {
 	glog.Info("Returning 200 response")
 	c.Header("Content-Type", "application/json; charset=UTF-8")
 	c.Data(http.StatusOK, "application/json", listingsJson)
-	return
 }
-
-var (
-	// Shared variable to store the fetched JSON
-	sheetData []byte
-	// Mutex to synchronize access to `sheetData`
-	mu sync.Mutex
-)
 
 // getSheetData returns the cached JSON data.
 func getSheetDataFromCache() ([]byte, error) {
