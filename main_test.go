@@ -9,27 +9,31 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// Define global variables for tests
+var testApiKey = "fakeApiKeyForTesting"
 var testSheetData = []byte(`[{"name": "Test Listing"}]`)
 
 // Setup function for tests
 func setupRouter() *gin.Engine {
 	gin.SetMode(gin.TestMode)
 	router := gin.Default()
-	router.GET("/listings", GetListingsFromCache)
+	router.GET("/listings", ListingsEndpoint)
 	return router
 }
 
-// Test GetListingsFromCache when data is available
-func TestGetListingsFromCache_Success(t *testing.T) {
+// Test listings endpoint when key is valid and the data is available
+func TestGetListingsFromCache_ValidKey_Success(t *testing.T) {
 	// Set up test data
 	mu.Lock()
+	ourApiKey = testApiKey
 	sheetData = testSheetData
 	mu.Unlock()
 
 	router := setupRouter()
 
-	// Create a test HTTP request
+	// Create an test HTTP request
 	req, _ := http.NewRequest("GET", "/listings", nil)
+	req.Header.Add("X-API-Key", "fakeApiKeyForTesting")
 	resp := httptest.NewRecorder()
 
 	// Perform the request
@@ -41,7 +45,55 @@ func TestGetListingsFromCache_Success(t *testing.T) {
 	assert.JSONEq(t, string(testSheetData), resp.Body.String())
 }
 
-// Test GetListingsFromCache when data is not available
+// Test listings endpoint when key is invalid and the data is available
+func TestGetListingsFromCache_InvalidKey_Success(t *testing.T) {
+	// Set up test data
+	mu.Lock()
+	ourApiKey = testApiKey
+	sheetData = testSheetData
+	mu.Unlock()
+
+	router := setupRouter()
+
+	// Create an test HTTP request
+	req, _ := http.NewRequest("GET", "/listings", nil)
+	req.Header.Add("X-API-Key", "invalidApiKeyForTesting")
+	resp := httptest.NewRecorder()
+
+	// Perform the request
+	router.ServeHTTP(resp, req)
+
+	// Validate the response
+	assert.Equal(t, http.StatusOK, resp.Code)
+	assert.Equal(t, "application/json; charset=UTF-8", resp.Header().Get("Content-Type"))
+	assert.JSONEq(t, string(testSheetData), resp.Body.String())
+}
+
+// Test listings endpoint when key is missing and the data is available
+func TestGetListingsFromCache_MissingKey_Success(t *testing.T) {
+	// Set up test data
+	mu.Lock()
+	ourApiKey = testApiKey
+	sheetData = testSheetData
+	mu.Unlock()
+
+	router := setupRouter()
+
+	// Create an test HTTP request
+	req, _ := http.NewRequest("GET", "/listings", nil)
+	req.Header.Add("X-API-Key", "")
+	resp := httptest.NewRecorder()
+
+	// Perform the request
+	router.ServeHTTP(resp, req)
+
+	// Validate the response
+	assert.Equal(t, http.StatusOK, resp.Code)
+	assert.Equal(t, "application/json; charset=UTF-8", resp.Header().Get("Content-Type"))
+	assert.JSONEq(t, string(testSheetData), resp.Body.String())
+}
+
+// Test listings endpoint when data is not available
 func TestGetListingsFromCache_EmptyCache(t *testing.T) {
 	// Clear the shared data
 	mu.Lock()
