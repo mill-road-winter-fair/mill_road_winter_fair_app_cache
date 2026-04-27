@@ -15,9 +15,6 @@ import (
 	"github.com/joho/godotenv"
 )
 
-// Define global variables
-var ourApiKey string
-
 func main() {
 
 	// Parse the argument flags (like the ones in Heroku's Procfile)
@@ -55,8 +52,8 @@ func main() {
 	glog.Info("Starting web server")
 	webServer := gin.Default()
 
-	// API endpoint to handle listings GET operations
-	webServer.GET("/listings", ListingsEndpoint)
+	// API endpoints to handle shop CRUD operations
+	webServer.GET("/listings", GetListingsFromCache)
 
 	// Run the webserver
 	ginErr := webServer.Run(":" + port)
@@ -140,17 +137,17 @@ func getSheetDataFromCache() ([]byte, error) {
 // fetchSheetData fetches data from the Google Sheets API at regular intervals.
 func fetchSheetData() {
 	// Get environment variables
-	googleSheetsApiKey := os.Getenv("GOOGLE_SHEETS_API_KEY")
-	googleSheetID := os.Getenv("GOOGLE_SHEET_ID")
-	googleSheetRange := os.Getenv("GOOGLE_SHEET_RANGE")
+	apiKey := os.Getenv("GOOGLE_SHEETS_API_KEY")
+	sheetID := os.Getenv("GOOGLE_SHEET_ID")
+	rangeValue := os.Getenv("GOOGLE_SHEET_RANGE")
 
-	if googleSheetID == "" || googleSheetsApiKey == "" || googleSheetRange == "" {
+	if sheetID == "" || apiKey == "" || rangeValue == "" {
 		glog.Error("Environment variables GOOGLE_SHEETS_API_KEY, GOOGLE_SHEET_ID, and GOOGLE_SHEET_RANGE must be set.")
 		return
 	}
 
 	glog.Info("Making HTTP call to Google Sheets API")
-	url := fmt.Sprintf("https://sheets.googleapis.com/v4/spreadsheets/%s/values/%s?key=%s", googleSheetID, googleSheetRange, googleSheetsApiKey)
+	url := fmt.Sprintf("https://sheets.googleapis.com/v4/spreadsheets/%s/values/%s?key=%s", sheetID, rangeValue, apiKey)
 
 	glog.Info("Beginning one minute delay")
 	ticker := time.NewTicker(1 * time.Minute)
