@@ -13,15 +13,27 @@ The purpose of this application is to act as a wrapper for the Google Sheets API
 
 ### Environment Variables
 
-At present these are the only environment variables needed to run the application. They allow the application to contact the following Google Sheet: https://docs.google.com/spreadsheets/d/1hkx3d4eVw2roFIEDdrYkpT0wwHKBdx7YaZP8vc-Cg2o/view
+At present these are the only environment variables needed to run the application. They allow the application to contact the following Google Sheets:
+- Prod: https://docs.google.com/spreadsheets/d/1hkx3d4eVw2roFIEDdrYkpT0wwHKBdx7YaZP8vc-Cg2o/view
+- Dev: https://docs.google.com/spreadsheets/d/1MO7sVJiuof_8wcy6yOnPE3Nhi65RRK_etgg1AxZM274/view
 
 These should be stored in `.env` like so:
 ```
+# API key used to call Google Sheets API
 GOOGLE_SHEETS_API_KEY=*********************
+
+# Google Sheet information for prod endpoint
 GOOGLE_SHEET_ID=1hkx3d4eVw2roFIEDdrYkpT0wwHKBdx7YaZP8vc-Cg2o
 GOOGLE_SHEET_RANGE=2025!A1:N350
+
+# Google Sheet information for dev endpoint
+DEV_GOOGLE_SHEET_ID=1MO7sVJiuof_8wcy6yOnPE3Nhi65RRK_etgg1AxZM274
+DEV_GOOGLE_SHEET_RANGE=2025!A1:Q350
+
+# API key used to call our API endpoints (not the Google Sheets API)
+OUR_API_KEY=*********************
 ```
-Please request a copy of the API key from the repository's owner.
+Please request a copy of the Google Sheets API key from the repository's owner.
 
 ### Prerequisites
 - n/a 
@@ -29,5 +41,5 @@ Please request a copy of the API key from the repository's owner.
 ## Other Links
 - [Mill Road Winter Fair App code](https://github.com/MarauderOne/mill_road_winter_fair_app)
 - [Test Data Spreadsheet](https://docs.google.com/spreadsheets/d/1-Dk_K8tvDJ4C9vSx0OJSEYhvhGrt6IEkabVRP83n0OM/edit?usp=sharing)
-- [Prod Data Spreadsheet](https://docs.google.com/spreadsheets/d/1hkx3d4eVw2roFIEDdrYkpT0wwHKBdx7YaZP8vc-Cg2o/edit?usp=sharing)
+- [Prod Data Spreadsheet](https://docs.google.com/spreadsheets/d/1MO7sVJiuof_8wcy6yOnPE3Nhi65RRK_etgg1AxZM274/edit?usp=sharing)
 - [Go Documentation](https://go.dev/doc/)

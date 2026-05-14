@@ -10,12 +10,14 @@ import (
 )
 
 var testSheetData = []byte(`[{"name": "Test Listing"}]`)
+var testDevSheetData = []byte(`[{"name": "Test Dev Listing"}]`)
 
 // Setup function for tests
 func setupRouter() *gin.Engine {
 	gin.SetMode(gin.TestMode)
 	router := gin.Default()
 	router.GET("/listings", GetListingsFromCache)
+	router.GET("/dev-listings", GetDevListingsFromCache)
 	return router
 }
 
@@ -78,4 +80,32 @@ func TestGetSheetDataFromCache_EmptyCache(t *testing.T) {
 	assert.Error(t, err)
 	assert.Nil(t, data)
 	assert.Equal(t, "No listings available yet", err.Error())
+}
+
+func TestGetDevListingsFromCache_Success(t *testing.T) {
+	mu.Lock()
+	devSheetData = testDevSheetData
+	mu.Unlock()
+
+	router := setupRouter()
+
+	req, _ := http.NewRequest("GET", "/dev-listings", nil)
+	resp := httptest.NewRecorder()
+
+	router.ServeHTTP(resp, req)
+
+	assert.Equal(t, http.StatusOK, resp.Code)
+	assert.Equal(t, "application/json; charset=UTF-8", resp.Header().Get("Content-Type"))
+	assert.JSONEq(t, string(testDevSheetData), resp.Body.String())
+}
+
+func TestGetDevSheetDataFromCache_EmptyCache(t *testing.T) {
+	mu.Lock()
+	devSheetData = nil
+	mu.Unlock()
+
+	data, err := getDevSheetDataFromCache()
+	assert.Error(t, err)
+	assert.Nil(t, data)
+	assert.Equal(t, "No dev listings available yet", err.Error())
 }
