@@ -16,9 +16,11 @@ import (
 )
 
 var (
-	// Shared variable to store the fetched JSON
+	// Shared variable to store the fetched JSON for production listings
 	sheetData []byte
-	// Mutex to synchronize access to `sheetData`
+	// Shared variable to store the fetched JSON for dev listings
+	devSheetData []byte
+	// Mutex to synchronize access to listing caches
 	mu sync.Mutex
 
 	// ourApiKey holds the expected API key loaded from environment variables.
@@ -54,9 +56,10 @@ func main() {
 	// Validate the API key
 	ValidateApiKey()
 
-	// Start the data fetching in a separate goroutine
+	// Start the data fetching in separate goroutines
 	glog.Info("Starting fetch of data from Google Sheets API")
 	go fetchSheetData()
+	go fetchDevSheetData()
 
 	// Create default webserver config
 	glog.Info("Starting web server")
@@ -64,6 +67,7 @@ func main() {
 
 	// API endpoints to handle shop CRUD operations
 	webServer.GET("/listings", ListingsEndpoint)
+	webServer.GET("/dev-listings", DevListingsEndpoint)
 
 	// Run the webserver
 	ginErr := webServer.Run(":" + port)
@@ -81,6 +85,14 @@ func ValidateApiKey() {
 }
 
 func ListingsEndpoint(c *gin.Context) {
+	validateKeyAndReturnListings(c, GetListingsFromCache)
+}
+
+func DevListingsEndpoint(c *gin.Context) {
+	validateKeyAndReturnListings(c, GetDevListingsFromCache)
+}
+
+func validateKeyAndReturnListings(c *gin.Context, endpointFunc gin.HandlerFunc) {
 	key := c.GetHeader("X-API-Key")
 	if key == "" {
 		key = c.Query("key")
@@ -89,7 +101,7 @@ func ListingsEndpoint(c *gin.Context) {
 		glog.Warning("Missing key parameter, returning listings anyway")
 		// The first step is to return the listings from the cache, even if the key is missing or invalid. This way, users can still access the data without providing a key, but we will be informed about the missing or invalid key in the logs.
 		// Once we have the logs, we can decide whether to enforce the key requirement in the future. To begin with, we will allow access to the listings even if the key is missing or invalid, but we will log a warning message in both cases.
-		GetListingsFromCache(c)
+		endpointFunc(c)
 		//c.JSON(http.StatusBadRequest, gin.H{"error": "missing key parameter"})
 		return
 	}
@@ -97,20 +109,26 @@ func ListingsEndpoint(c *gin.Context) {
 		glog.Warning("Invalid key provided, returning listings anyway")
 		// The first step is to return the listings from the cache, even if the key is missing or invalid. This way, users can still access the data without providing a key, but we will be informed about the missing or invalid key in the logs.
 		// Once we have the logs, we can decide whether to enforce the key requirement in the future. To begin with, we will allow access to the listings even if the key is missing or invalid, but we will log a warning message in both cases.
-		GetListingsFromCache(c)
+		endpointFunc(c)
 		//c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid key"})
 		return
 	}
 	glog.Info("Valid key provided, returning listings")
-	GetListingsFromCache(c)
+	endpointFunc(c)
 }
 
 func GetListingsFromCache(c *gin.Context) {
-	var listingsJson []byte
+	returnCachedListings(c, getSheetDataFromCache)
+}
 
+func GetDevListingsFromCache(c *gin.Context) {
+	returnCachedListings(c, getDevSheetDataFromCache)
+}
+
+func returnCachedListings(c *gin.Context, cacheFunc func() ([]byte, error)) {
 	// Call the DB function
-	glog.Info("Calling getSheetDataFromCache function")
-	listingsJson, err := getSheetDataFromCache()
+	glog.Info("Calling cache fetch function")
+	listingsJSON, err := cacheFunc()
 
 	if err != nil {
 		// Return the status code and body from the function
@@ -122,10 +140,10 @@ func GetListingsFromCache(c *gin.Context) {
 	// Return successful response with the processed JSON data
 	glog.Info("Returning 200 response")
 	c.Header("Content-Type", "application/json; charset=UTF-8")
-	c.Data(http.StatusOK, "application/json", listingsJson)
+	c.Data(http.StatusOK, "application/json", listingsJSON)
 }
 
-// getSheetData returns the cached JSON data.
+// getSheetDataFromCache returns the cached JSON data for /listings.
 func getSheetDataFromCache() ([]byte, error) {
 	mu.Lock()
 	defer mu.Unlock()
@@ -136,15 +154,35 @@ func getSheetDataFromCache() ([]byte, error) {
 	return sheetData, nil
 }
 
+// getDevSheetDataFromCache returns the cached JSON data for /dev-listings.
+func getDevSheetDataFromCache() ([]byte, error) {
+	mu.Lock()
+	defer mu.Unlock()
+	if devSheetData == nil {
+		glog.Error("devSheetData variable is empty")
+		return nil, fmt.Errorf("No dev listings available yet")
+	}
+	return devSheetData, nil
+}
+
 // fetchSheetData fetches data from the Google Sheets API at regular intervals.
 func fetchSheetData() {
+	fetchSheetDataFromEnv("GOOGLE_SHEET_ID", "GOOGLE_SHEET_RANGE", &sheetData)
+}
+
+// fetchDevSheetData fetches dev data from a separate Google Sheet at regular intervals.
+func fetchDevSheetData() {
+	fetchSheetDataFromEnv("DEV_GOOGLE_SHEET_ID", "DEV_GOOGLE_SHEET_RANGE", &devSheetData)
+}
+
+func fetchSheetDataFromEnv(sheetIDEnvName, rangeEnvName string, destination *[]byte) {
 	// Get environment variables
 	apiKey := os.Getenv("GOOGLE_SHEETS_API_KEY")
-	sheetID := os.Getenv("GOOGLE_SHEET_ID")
-	rangeValue := os.Getenv("GOOGLE_SHEET_RANGE")
+	sheetID := os.Getenv(sheetIDEnvName)
+	rangeValue := os.Getenv(rangeEnvName)
 
 	if sheetID == "" || apiKey == "" || rangeValue == "" {
-		glog.Error("Environment variables GOOGLE_SHEETS_API_KEY, GOOGLE_SHEET_ID, and GOOGLE_SHEET_RANGE must be set.")
+		glog.Errorf("Environment variables GOOGLE_SHEETS_API_KEY, %s, and %s must be set.", sheetIDEnvName, rangeEnvName)
 		return
 	}
 
@@ -184,7 +222,7 @@ func fetchSheetData() {
 				if !bytes.Equal(body, lastFetchedData) {
 					glog.Info("Data updated.")
 					mu.Lock()
-					sheetData = body
+					*destination = body
 					mu.Unlock()
 					lastFetchedData = body
 				} else {
