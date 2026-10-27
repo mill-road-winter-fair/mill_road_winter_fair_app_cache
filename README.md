@@ -30,10 +30,26 @@ GOOGLE_SHEET_RANGE=2025!A1:N350
 DEV_GOOGLE_SHEET_ID=1MO7sVJiuof_8wcy6yOnPE3Nhi65RRK_etgg1AxZM274
 DEV_GOOGLE_SHEET_RANGE=2025!A1:Q350
 
+# Google Sheet information for /notifications
+NOTIFICATIONS_GOOGLE_SHEET_ID=your-production-notifications-sheet-id
+NOTIFICATIONS_GOOGLE_SHEET_RANGE=Sheet1!A1:Z350
+
+# Google Sheet information for /notifications-dev
+DEV_NOTIFICATIONS_GOOGLE_SHEET_ID=your-development-notifications-sheet-id
+DEV_NOTIFICATIONS_GOOGLE_SHEET_RANGE=Sheet1!A1:Z350
+
 # API key used to call our API endpoints (not the Google Sheets API)
 OUR_API_KEY=*********************
 ```
 Please request a copy of the Google Sheets API key from the repository's owner.
+
+### Notification endpoints
+
+`GET /notifications` and `GET /dev-notifications` return the raw Google Sheets JSON from separate production and development notification caches. Set the four notification sheet variables above in `.env`, replacing the example IDs and ranges with your own. Both use the existing `GOOGLE_SHEETS_API_KEY`.
+
+All sheets are polled once a minute, with the first fetch one minute after startup. Failed fetches retain the last successful cached response. If a sheet's configuration is missing, its poller logs an error and does not start; restart after configuring it.
+
+Both notification endpoints require `OUR_API_KEY`, supplied in the `X-API-Key` header or the `key` query parameter. A non-empty header takes precedence. Missing or incorrect keys return HTTP 401 without exposing cached data. An authorised request before the cache is populated returns HTTP 500. Existing listing endpoints retain their current permissive key handling.
 
 ### Prerequisites
 - n/a 
