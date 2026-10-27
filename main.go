@@ -62,8 +62,8 @@ func main() {
 
 	// Start the data fetching in separate goroutines
 	glog.Info("Starting fetch of data from Google Sheets API")
-	go fetchSheetData()
-	go fetchDevSheetData()
+	go fetchListingsSheetData()
+	go fetchDevListingsSheetData()
 	go fetchNotificationsSheetData()
 	go fetchDevNotificationsSheetData()
 
@@ -104,7 +104,7 @@ func NotificationsEndpoint(c *gin.Context) {
 	if !requireAPIKey(c) {
 		return
 	}
-	returnCachedListings(c, func() ([]byte, error) {
+	returnCachedData(c, func() ([]byte, error) {
 		return getNotificationsFromCache(&notificationsSheetData)
 	})
 }
@@ -113,7 +113,7 @@ func DevNotificationsEndpoint(c *gin.Context) {
 	if !requireAPIKey(c) {
 		return
 	}
-	returnCachedListings(c, func() ([]byte, error) {
+	returnCachedData(c, func() ([]byte, error) {
 		return getNotificationsFromCache(&devNotificationsSheetData)
 	})
 }
@@ -167,14 +167,14 @@ func validateKeyAndReturnListings(c *gin.Context, endpointFunc gin.HandlerFunc) 
 }
 
 func GetListingsFromCache(c *gin.Context) {
-	returnCachedListings(c, getSheetDataFromCache)
+	returnCachedData(c, getSheetDataFromCache)
 }
 
 func GetDevListingsFromCache(c *gin.Context) {
-	returnCachedListings(c, getDevSheetDataFromCache)
+	returnCachedData(c, getDevSheetDataFromCache)
 }
 
-func returnCachedListings(c *gin.Context, cacheFunc func() ([]byte, error)) {
+func returnCachedData(c *gin.Context, cacheFunc func() ([]byte, error)) {
 	// Call the DB function
 	glog.Info("Calling cache fetch function")
 	listingsJSON, err := cacheFunc()
@@ -214,13 +214,13 @@ func getDevSheetDataFromCache() ([]byte, error) {
 	return devSheetData, nil
 }
 
-// fetchSheetData fetches data from the Google Sheets API at regular intervals.
-func fetchSheetData() {
+// fetchListingsSheetData fetches data from the Google Sheets API at regular intervals.
+func fetchListingsSheetData() {
 	fetchSheetDataFromEnv("GOOGLE_SHEET_ID", "GOOGLE_SHEET_RANGE", &sheetData)
 }
 
-// fetchDevSheetData fetches dev data from a separate Google Sheet at regular intervals.
-func fetchDevSheetData() {
+// fetchDevListingsSheetData fetches dev data from a separate Google Sheet at regular intervals.
+func fetchDevListingsSheetData() {
 	fetchSheetDataFromEnv("DEV_GOOGLE_SHEET_ID", "DEV_GOOGLE_SHEET_RANGE", &devSheetData)
 }
 
