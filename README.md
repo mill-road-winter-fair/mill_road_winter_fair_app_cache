@@ -24,19 +24,19 @@ GOOGLE_SHEETS_API_KEY=*********************
 
 # Google Sheet information for prod endpoint
 GOOGLE_SHEET_ID=1hkx3d4eVw2roFIEDdrYkpT0wwHKBdx7YaZP8vc-Cg2o
-GOOGLE_SHEET_RANGE=2025!A1:N350
+GOOGLE_SHEET_RANGE=2026!A1:AB350
 
 # Google Sheet information for dev endpoint
 DEV_GOOGLE_SHEET_ID=1MO7sVJiuof_8wcy6yOnPE3Nhi65RRK_etgg1AxZM274
-DEV_GOOGLE_SHEET_RANGE=2025!A1:Q350
+DEV_GOOGLE_SHEET_RANGE=2026!A1:AB350
 
 # Google Sheet information for /notifications
 NOTIFICATIONS_GOOGLE_SHEET_ID=your-production-notifications-sheet-id
-NOTIFICATIONS_GOOGLE_SHEET_RANGE=Sheet1!A1:Z350
+NOTIFICATIONS_GOOGLE_SHEET_RANGE=Sheet1!A1:B100
 
 # Google Sheet information for /notifications-dev
 DEV_NOTIFICATIONS_GOOGLE_SHEET_ID=your-development-notifications-sheet-id
-DEV_NOTIFICATIONS_GOOGLE_SHEET_RANGE=Sheet1!A1:Z350
+DEV_NOTIFICATIONS_GOOGLE_SHEET_RANGE=Sheet1!A1:B100
 
 # API key used to call our API endpoints (not the Google Sheets API)
 OUR_API_KEY=*********************
