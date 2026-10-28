@@ -16,8 +16,10 @@ var testDevSheetData = []byte(`[{"name": "Test Dev Listing"}]`)
 func setupRouter() *gin.Engine {
 	gin.SetMode(gin.TestMode)
 	router := gin.Default()
-	router.GET("/listings", GetListingsFromCache)
-	router.GET("/dev-listings", GetDevListingsFromCache)
+	router.GET("/listings", ListingsEndpoint)
+	router.GET("/dev-listings", DevListingsEndpoint)
+	router.GET("/notifications", NotificationsEndpoint)
+	router.GET("/notifications-dev", DevNotificationsEndpoint)
 	return router
 }
 
@@ -108,4 +110,90 @@ func TestGetDevSheetDataFromCache_EmptyCache(t *testing.T) {
 	assert.Error(t, err)
 	assert.Nil(t, data)
 	assert.Equal(t, "No dev listings available yet", err.Error())
+}
+
+// Test both public routes with distinct caches and every supported credential source.
+func TestNotificationsEndpoints(t *testing.T) {
+	previousKey := ourApiKey
+	ourApiKey = "test-api-key"
+	mu.Lock()
+	previousProd, previousDev := notificationsSheetData, devNotificationsSheetData
+	mu.Unlock()
+	t.Cleanup(func() {
+		ourApiKey = previousKey
+		mu.Lock()
+		notificationsSheetData, devNotificationsSheetData = previousProd, previousDev
+		mu.Unlock()
+	})
+
+	for _, empty := range []bool{false, true} {
+		mu.Lock()
+		notificationsSheetData = []byte(`{"values":[["Production notification"]]}`)
+		devNotificationsSheetData = []byte(`{"values":[["Development notification"]]}`)
+		if empty {
+			notificationsSheetData, devNotificationsSheetData = nil, nil
+		}
+		mu.Unlock()
+		for _, route := range []struct {
+			path string
+			body string
+		}{
+			{"/notifications", `{"values":[["Production notification"]]}`},
+			{"/notifications-dev", `{"values":[["Development notification"]]}`},
+		} {
+			for _, credential := range []struct {
+				name       string
+				header     string
+				query      string
+				authorised bool
+			}{
+				{"missing", "", "", false},
+				{"invalid header", "wrong", "", false},
+				{"invalid query", "", "?key=wrong", false},
+				{"valid header", "test-api-key", "", true},
+				{"valid query", "", "?key=test-api-key", true},
+				{"invalid header overrides query", "wrong", "?key=test-api-key", false},
+				{"valid header overrides query", "test-api-key", "?key=wrong", true},
+			} {
+				t.Run(route.path+"/"+credential.name+map[bool]string{true: "/empty", false: "/populated"}[empty], func(t *testing.T) {
+					req := httptest.NewRequest(http.MethodGet, route.path+credential.query, nil)
+					if credential.header != "" {
+						req.Header.Set("X-API-Key", credential.header)
+					}
+					resp := httptest.NewRecorder()
+					setupRouter().ServeHTTP(resp, req)
+					switch {
+					case !credential.authorised:
+						assert.Equal(t, http.StatusUnauthorized, resp.Code)
+						assert.JSONEq(t, `{"error":"missing or invalid API key"}`, resp.Body.String())
+					case empty:
+						assert.Equal(t, http.StatusInternalServerError, resp.Code)
+						assert.JSONEq(t, `{"error":"No notifications available yet"}`, resp.Body.String())
+					default:
+						assert.Equal(t, http.StatusOK, resp.Code)
+						assert.JSONEq(t, route.body, resp.Body.String())
+					}
+				})
+			}
+		}
+	}
+	ourApiKey = ""
+	for _, path := range []string{"/notifications", "/notifications-dev"} {
+		resp := httptest.NewRecorder()
+		setupRouter().ServeHTTP(resp, httptest.NewRequest(http.MethodGet, path+"?key=test-api-key", nil))
+		assert.Equal(t, http.StatusUnauthorized, resp.Code)
+	}
+}
+
+func TestListingsRemainAccessibleWithInvalidKey(t *testing.T) {
+	mu.Lock()
+	sheetData, devSheetData = testSheetData, testDevSheetData
+	mu.Unlock()
+	for _, path := range []string{"/listings", "/dev-listings"} {
+		req := httptest.NewRequest(http.MethodGet, path, nil)
+		req.Header.Set("X-API-Key", "invalid")
+		resp := httptest.NewRecorder()
+		setupRouter().ServeHTTP(resp, req)
+		assert.Equal(t, http.StatusOK, resp.Code)
+	}
 }

@@ -16,10 +16,14 @@ import (
 )
 
 var (
-	// Shared variable to store the fetched JSON for production listings
+	// Shared variables to store the Listings JSON for production and development endpoints
 	sheetData []byte
-	// Shared variable to store the fetched JSON for dev listings
 	devSheetData []byte
+
+	// Shared variables to store the Notifications JSON for production and development endpoints
+	notificationsSheetData []byte
+	devNotificationsSheetData []byte
+
 	// Mutex to synchronize access to listing caches
 	mu sync.Mutex
 
@@ -58,8 +62,10 @@ func main() {
 
 	// Start the data fetching in separate goroutines
 	glog.Info("Starting fetch of data from Google Sheets API")
-	go fetchSheetData()
-	go fetchDevSheetData()
+	go fetchListingsSheetData()
+	go fetchDevListingsSheetData()
+	go fetchNotificationsSheetData()
+	go fetchDevNotificationsSheetData()
 
 	// Create default webserver config
 	glog.Info("Starting web server")
@@ -68,6 +74,8 @@ func main() {
 	// API endpoints to handle shop CRUD operations
 	webServer.GET("/listings", ListingsEndpoint)
 	webServer.GET("/dev-listings", DevListingsEndpoint)
+	webServer.GET("/notifications", NotificationsEndpoint)
+	webServer.GET("/dev-notifications", DevNotificationsEndpoint)
 
 	// Run the webserver
 	ginErr := webServer.Run(":" + port)
@@ -90,6 +98,47 @@ func ListingsEndpoint(c *gin.Context) {
 
 func DevListingsEndpoint(c *gin.Context) {
 	validateKeyAndReturnListings(c, GetDevListingsFromCache)
+}
+
+func NotificationsEndpoint(c *gin.Context) {
+	if !requireAPIKey(c) {
+		return
+	}
+	returnCachedData(c, func() ([]byte, error) {
+		return getNotificationsFromCache(&notificationsSheetData)
+	})
+}
+
+func DevNotificationsEndpoint(c *gin.Context) {
+	if !requireAPIKey(c) {
+		return
+	}
+	returnCachedData(c, func() ([]byte, error) {
+		return getNotificationsFromCache(&devNotificationsSheetData)
+	})
+}
+
+// requireAPIKey uses the same key and header/query precedence as listings,
+// but rejects unauthorised requests before accessing the notification cache.
+func requireAPIKey(c *gin.Context) bool {
+	key := c.GetHeader("X-API-Key")
+	if key == "" {
+		key = c.Query("key")
+	}
+	if key == "" || ourApiKey == "" || key != ourApiKey {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "missing or invalid API key"})
+		return false
+	}
+	return true
+}
+
+func getNotificationsFromCache(cache *[]byte) ([]byte, error) {
+	mu.Lock()
+	defer mu.Unlock()
+	if *cache == nil {
+		return nil, fmt.Errorf("No notifications available yet")
+	}
+	return *cache, nil
 }
 
 func validateKeyAndReturnListings(c *gin.Context, endpointFunc gin.HandlerFunc) {
@@ -118,14 +167,14 @@ func validateKeyAndReturnListings(c *gin.Context, endpointFunc gin.HandlerFunc) 
 }
 
 func GetListingsFromCache(c *gin.Context) {
-	returnCachedListings(c, getSheetDataFromCache)
+	returnCachedData(c, getSheetDataFromCache)
 }
 
 func GetDevListingsFromCache(c *gin.Context) {
-	returnCachedListings(c, getDevSheetDataFromCache)
+	returnCachedData(c, getDevSheetDataFromCache)
 }
 
-func returnCachedListings(c *gin.Context, cacheFunc func() ([]byte, error)) {
+func returnCachedData(c *gin.Context, cacheFunc func() ([]byte, error)) {
 	// Call the DB function
 	glog.Info("Calling cache fetch function")
 	listingsJSON, err := cacheFunc()
@@ -165,14 +214,22 @@ func getDevSheetDataFromCache() ([]byte, error) {
 	return devSheetData, nil
 }
 
-// fetchSheetData fetches data from the Google Sheets API at regular intervals.
-func fetchSheetData() {
+// fetchListingsSheetData fetches data from the Google Sheets API at regular intervals.
+func fetchListingsSheetData() {
 	fetchSheetDataFromEnv("GOOGLE_SHEET_ID", "GOOGLE_SHEET_RANGE", &sheetData)
 }
 
-// fetchDevSheetData fetches dev data from a separate Google Sheet at regular intervals.
-func fetchDevSheetData() {
+// fetchDevListingsSheetData fetches dev data from a separate Google Sheet at regular intervals.
+func fetchDevListingsSheetData() {
 	fetchSheetDataFromEnv("DEV_GOOGLE_SHEET_ID", "DEV_GOOGLE_SHEET_RANGE", &devSheetData)
+}
+
+func fetchNotificationsSheetData() {
+	fetchSheetDataFromEnv("NOTIFICATIONS_GOOGLE_SHEET_ID", "NOTIFICATIONS_GOOGLE_SHEET_RANGE", &notificationsSheetData)
+}
+
+func fetchDevNotificationsSheetData() {
+	fetchSheetDataFromEnv("DEV_NOTIFICATIONS_GOOGLE_SHEET_ID", "DEV_NOTIFICATIONS_GOOGLE_SHEET_RANGE", &devNotificationsSheetData)
 }
 
 func fetchSheetDataFromEnv(sheetIDEnvName, rangeEnvName string, destination *[]byte) {
